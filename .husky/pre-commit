@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+# Load mise shims for GUI apps (Cursor/VSCode)
+export PATH="$HOME/.local/share/mise/shims:$PATH"
+
+echo "🔍 Running type check..."
+pnpm run typecheck || {
+  echo "❌ Type check failed. Please fix type errors before committing."
+  exit 1
+}
+
+echo "🔧 Running lint-staged..."
+pnpm run lint-staged || {
+  echo "❌ Lint-staged failed. Please fix linting errors before committing."
+  exit 1
+}
+
+echo "✅ Pre-commit checks passed!"
+

@@ -1,0 +1,59 @@
+{
+  "name": "insights-plus-for-github-projects",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "spawn-sync"
+    ]
+  },
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.26.1",
+  "description": "A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf .output dist",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
+  "keywords": [
+    "chrome-extension",
+    "github",
+    "burnup",
+    "velocity",
+    "project-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.251",
+    "@types/jsdom": "^27.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/ui": "^4.0.16",
+    "eslint": "^9.0.0",
+    "husky": "^9.1.7",
+    "jsdom": "^27.3.0",
+    "lint-staged": "^15.2.11",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.16",
+    "wxt": "^0.20.13"
+  }
+}
