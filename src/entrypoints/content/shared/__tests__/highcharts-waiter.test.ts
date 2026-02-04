@@ -73,10 +73,16 @@ describe('highcharts-waiter', () => {
       expect(querySelectorSpy).toHaveBeenCalledTimes(5);
       expect(querySelectorSpy).toHaveBeenCalledWith('.highcharts-container');
 
-      // Resolve the promise
-      await vi.advanceTimersByTimeAsync(30000);
-      await promise;
+      // Add container to resolve the promise without timeout
+      const container = document.createElement('div');
+      container.className = 'highcharts-container';
+      document.body.appendChild(container);
 
+      // Advance time to trigger the check
+      await vi.advanceTimersByTimeAsync(500);
+      const result = await promise;
+
+      expect(result).toBe(true);
       querySelectorSpy.mockRestore();
     });
 

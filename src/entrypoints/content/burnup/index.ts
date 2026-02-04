@@ -7,6 +7,7 @@ import { calculatePrediction } from './prediction-calculator';
 import { createStatsPanel, updatePrediction } from './stats-panel';
 import { drawOverlay } from './chart-overlay';
 import { getLookbackDays, getTargetDate } from './settings';
+import { matchesStorageKey, generateStorageKey, STORAGE_KEY_BURNUP_LOOKBACK_DAYS, STORAGE_KEY_BURNUP_TARGET_DATE } from '../shared/storage-key';
 import './style.css';
 
 export async function initializeBurnup(): Promise<void> {
@@ -110,7 +111,23 @@ export async function initializeBurnup(): Promise<void> {
 
   // Listen for storage changes to recalculate when settings change
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === 'local' && (changes.lookbackDays || changes.targetDate)) {
+    if (areaName !== 'local') {
+      return;
+    }
+    
+    // Check if any of the changed keys match our storage key patterns
+    const currentLookbackKey = generateStorageKey(STORAGE_KEY_BURNUP_LOOKBACK_DAYS);
+    const currentTargetDateKey = generateStorageKey(STORAGE_KEY_BURNUP_TARGET_DATE);
+    
+    const shouldRecalculate = Object.keys(changes).some(key => {
+      // Check if the changed key matches our current keys or base patterns
+      return key === currentLookbackKey || 
+             key === currentTargetDateKey ||
+             matchesStorageKey(key, STORAGE_KEY_BURNUP_LOOKBACK_DAYS) ||
+             matchesStorageKey(key, STORAGE_KEY_BURNUP_TARGET_DATE);
+    });
+    
+    if (shouldRecalculate) {
       recalculate();
     }
   });

@@ -1,14 +1,58 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createStatsPanel, updatePrediction } from '../stats-panel';
 import type { BurnupChartData, VelocityInfo, Prediction } from '../types';
 
 describe('stats-panel', () => {
+  const originalLocation = window.location;
+  const mockChromeStorage = {
+    local: {
+      get: vi.fn((_: string | string[]) => {
+        return Promise.resolve({});
+      }),
+      set: vi.fn(() => Promise.resolve()),
+      remove: vi.fn(() => Promise.resolve()),
+    },
+  };
+
+  // Helper function to mock window.location
+  function mockLocation(href: string) {
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...originalLocation,
+        href,
+      },
+      writable: true,
+      configurable: true,
+    });
+  }
+
   beforeEach(() => {
     document.body.innerHTML = '';
+    
+    // Mock chrome API
+    (global as any).chrome = {
+      storage: mockChromeStorage,
+    };
+    
+    // Mock window.location
+    mockLocation('https://github.com/orgs/myorg/projects/123/insights');
+    
+    // Reset mocks
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     document.body.innerHTML = '';
+    
+    // Restore original location
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
+    
+    // Clean up chrome mock
+    delete (global as any).chrome;
   });
 
   describe('createStatsPanel', () => {

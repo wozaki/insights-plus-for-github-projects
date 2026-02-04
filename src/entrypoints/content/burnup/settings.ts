@@ -1,9 +1,9 @@
 // GitHub Burnup Predictor - Settings Module
 // Responsibility: Manage user settings for velocity calculation
 
+import { generateStorageKey, STORAGE_KEY_BURNUP_LOOKBACK_DAYS, STORAGE_KEY_BURNUP_TARGET_DATE } from '../shared/storage-key';
+
 const DEFAULT_LOOKBACK_DAYS = 21;
-const STORAGE_KEY_LOOKBACK_DAYS = 'lookbackDays';
-const STORAGE_KEY_TARGET_DATE = 'targetDate';
 
 /**
  * Get the lookback days setting from storage
@@ -11,8 +11,9 @@ const STORAGE_KEY_TARGET_DATE = 'targetDate';
  */
 export async function getLookbackDays(): Promise<number> {
   try {
-    const result = await chrome.storage.local.get(STORAGE_KEY_LOOKBACK_DAYS);
-    const days = result[STORAGE_KEY_LOOKBACK_DAYS];
+    const storageKey = generateStorageKey(STORAGE_KEY_BURNUP_LOOKBACK_DAYS);
+    const result = await chrome.storage.local.get(storageKey);
+    const days = result[storageKey];
     
     // Validate the value
     if (typeof days === 'number' && days >= 1 && days <= 365) {
@@ -38,7 +39,8 @@ export async function setLookbackDays(days: number): Promise<void> {
   }
   
   try {
-    await chrome.storage.local.set({ [STORAGE_KEY_LOOKBACK_DAYS]: days });
+    const storageKey = generateStorageKey(STORAGE_KEY_BURNUP_LOOKBACK_DAYS);
+    await chrome.storage.local.set({ [storageKey]: days });
   } catch (error) {
     console.error('Failed to set lookback days setting:', error);
     throw error;
@@ -58,8 +60,9 @@ export function getDefaultLookbackDays(): number {
  */
 export async function getTargetDate(): Promise<Date | null> {
   try {
-    const result = await chrome.storage.local.get(STORAGE_KEY_TARGET_DATE);
-    const dateString = result[STORAGE_KEY_TARGET_DATE];
+    const storageKey = generateStorageKey(STORAGE_KEY_BURNUP_TARGET_DATE);
+    const result = await chrome.storage.local.get(storageKey);
+    const dateString = result[storageKey];
     
     if (typeof dateString === 'string' && dateString) {
       const date = new Date(dateString);
@@ -87,9 +90,10 @@ export async function setTargetDate(date: Date): Promise<void> {
   }
   
   try {
+    const storageKey = generateStorageKey(STORAGE_KEY_BURNUP_TARGET_DATE);
     // Store as ISO string (YYYY-MM-DD format for date-only)
     const dateString = date.toISOString().split('T')[0];
-    await chrome.storage.local.set({ [STORAGE_KEY_TARGET_DATE]: dateString });
+    await chrome.storage.local.set({ [storageKey]: dateString });
   } catch (error) {
     console.error('Failed to set target date setting:', error);
     throw error;
@@ -102,7 +106,8 @@ export async function setTargetDate(date: Date): Promise<void> {
  */
 export async function clearTargetDate(): Promise<void> {
   try {
-    await chrome.storage.local.remove(STORAGE_KEY_TARGET_DATE);
+    const storageKey = generateStorageKey(STORAGE_KEY_BURNUP_TARGET_DATE);
+    await chrome.storage.local.remove(storageKey);
   } catch (error) {
     console.error('Failed to clear target date setting:', error);
     throw error;

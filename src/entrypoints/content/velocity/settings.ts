@@ -1,7 +1,8 @@
 // GitHub Project Insights - Velocity Settings Module
 // Responsibility: Manage user settings for velocity calculation
 
-const STORAGE_KEY_SELECTED_ITERATIONS = 'velocitySelectedIterations';
+import { generateStorageKey, STORAGE_KEY_VELOCITY_SELECTED_ITERATIONS } from '../shared/storage-key';
+
 const DEFAULT_ITERATION_COUNT = 3;
 
 /**
@@ -10,8 +11,9 @@ const DEFAULT_ITERATION_COUNT = 3;
  */
 export async function getSelectedIterations(): Promise<string[]> {
   try {
-    const result = await chrome.storage.local.get(STORAGE_KEY_SELECTED_ITERATIONS);
-    const iterations = result[STORAGE_KEY_SELECTED_ITERATIONS];
+    const storageKey = generateStorageKey(STORAGE_KEY_VELOCITY_SELECTED_ITERATIONS);
+    const result = await chrome.storage.local.get(storageKey);
+    const iterations = result[storageKey];
     
     // Validate the value
     if (Array.isArray(iterations)) {
@@ -32,7 +34,8 @@ export async function getSelectedIterations(): Promise<string[]> {
  */
 export async function setSelectedIterations(iterations: string[]): Promise<void> {
   try {
-    await chrome.storage.local.set({ [STORAGE_KEY_SELECTED_ITERATIONS]: iterations });
+    const storageKey = generateStorageKey(STORAGE_KEY_VELOCITY_SELECTED_ITERATIONS);
+    await chrome.storage.local.set({ [storageKey]: iterations });
   } catch (error) {
     console.error('Failed to set selected iterations setting:', error);
     throw error;
