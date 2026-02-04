@@ -1,5 +1,7 @@
 # Insights Plus for GitHub Projects
 
+![CI](https://img.shields.io/github/actions/workflow/status/wozaki/insights-plus-for-github-projects/ci.yml) ![Release](https://img.shields.io/github/v/release/wozaki/insights-plus-for-github-projects) [![License](https://img.shields.io/github/license/wozaki/insights-plus-for-github-projects)](LICENSE) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wozaki/insights-plus-for-github-projects)
+
 A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more.
 
 ## Features
