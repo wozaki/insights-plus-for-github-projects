@@ -36,7 +36,8 @@ function createLabel(
   y: number, 
   color: string,
   position: 'above' | 'below' = 'below',
-  rowOffset: number = 0
+  rowOffset: number = 0,
+  align: 'center' | 'start' = 'center'
 ): SVGGElement {
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   
@@ -54,9 +55,18 @@ function createLabel(
   const baseOffsetY = position === 'above' ? -12 : 20;
   const offsetY = baseOffsetY + (rowOffset * rowSpacing);
   
-  textEl.setAttribute('x', String(x));
+  const estimatedWidth = text.length * 7 + 16;
+
+  // Adjust x position and anchor based on alignment
+  // 'start': rect starts at x, text centered within rect
+  // 'center': rect and text centered at x
+  const rectX = align === 'start' ? x : x - estimatedWidth / 2;
+  const textX = rectX + estimatedWidth / 2;
+  const textAnchor = 'middle';
+
+  textEl.setAttribute('x', String(textX));
   textEl.setAttribute('y', String(y + offsetY));
-  textEl.setAttribute('text-anchor', 'middle');
+  textEl.setAttribute('text-anchor', textAnchor);
   
   // Create background rect with semi-transparent fill
   const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -68,11 +78,8 @@ function createLabel(
   g.appendChild(rect);
   g.appendChild(textEl);
   
-  // We need to add to DOM temporarily to measure, then adjust
-  // For now, estimate width based on character count
-  const estimatedWidth = text.length * 7 + 16;
   const height = 20;
-  rect.setAttribute('x', String(x - estimatedWidth / 2));
+  rect.setAttribute('x', String(rectX));
   rect.setAttribute('y', String(y + offsetY - 14));
   rect.setAttribute('width', String(estimatedWidth));
   rect.setAttribute('height', String(height));
@@ -324,6 +331,32 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
       }
     }
   }
+
+  // Draw scope target line (horizontal dashed line showing where Completed needs to reach)
+  // In stacked charts with Duplicate/other done-like statuses, this line sits below the Open line
+  // by the amount of those statuses, clearly indicating the completion goal.
+  const scopeTargetLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  scopeTargetLine.setAttribute('x1', String(plotLeft));
+  scopeTargetLine.setAttribute('y1', String(targetY));
+  scopeTargetLine.setAttribute('x2', String(plotLeft + plotWidth));
+  scopeTargetLine.setAttribute('y2', String(targetY));
+  scopeTargetLine.setAttribute('stroke', '#cbe044');
+  scopeTargetLine.setAttribute('stroke-width', '2');
+  scopeTargetLine.setAttribute('stroke-dasharray', '2,2');
+  scopeTargetLine.setAttribute('opacity', '0.8');
+  g.appendChild(scopeTargetLine);
+
+  // Scope target label (at the left edge of the line, with small inset to avoid clipping)
+  const scopeTargetLabel = createLabel(
+    'Scope target',
+    plotLeft + 4,
+    targetY,
+    '#cbe044',
+    'above',
+    0,
+    'start'
+  );
+  g.appendChild(scopeTargetLabel);
 
   // Draw Today marker (using user's local timezone)
   const todayLocal = getTodayLocal();

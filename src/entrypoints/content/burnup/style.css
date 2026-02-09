@@ -25,7 +25,10 @@
 .burnup-predictor-stats-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  column-gap: 16px;
+  row-gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--burnup-border);
@@ -199,6 +202,22 @@
       transparent 8px);
 }
 
+.burnup-predictor-legend-hint {
+  width: 100%;
+  font-size: 11px;
+  color: var(--burnup-text-secondary);
+  opacity: 0.7;
+  margin-top: 0;
+}
+
+.burnup-predictor-legend-line.scope-target {
+  background: repeating-linear-gradient(90deg,
+      #cbe044,
+      #cbe044 2px,
+      transparent 2px,
+      transparent 4px);
+}
+
 .burnup-predictor-error {
   background: rgba(248, 81, 73, 0.1);
   border: 1px solid rgba(248, 81, 73, 0.4);
@@ -248,7 +267,7 @@
   gap: 8px;
 }
 
-.burnup-predictor-settings-row + .burnup-predictor-settings-row {
+.burnup-predictor-settings-row+.burnup-predictor-settings-row {
   margin-top: 16px;
 }
 
@@ -299,9 +318,19 @@
 }
 
 @keyframes burnup-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 .burnup-predictor-settings-button {

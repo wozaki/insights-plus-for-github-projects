@@ -40,6 +40,13 @@ export function createStatsPanel(data: BurnupChartData): HTMLElement {
           <div class="burnup-predictor-legend-line ideal"></div>
           <span>Ideal velocity</span>
         </div>
+        <div class="burnup-predictor-legend-item">
+          <div class="burnup-predictor-legend-line scope-target"></div>
+          <span>Scope target</span>
+        </div>
+      </div>
+      <div class="burnup-predictor-legend-hint">
+        Scope target = Total excluding closed issues such as Duplicate and Not planned
       </div>
     </div>
     <div class="burnup-predictor-stats-grid">

@@ -175,6 +175,42 @@ describe('stats-panel', () => {
       expect(parent.contains(panel)).toBe(true);
     });
 
+    it('displays scope target legend item', () => {
+      const data: BurnupChartData = {
+        chartType: 'burnup',
+        completed: 50,
+        total: 100,
+        completedData: [],
+      };
+
+      const panel = createStatsPanel(data);
+
+      const scopeTargetLine = panel.querySelector('.burnup-predictor-legend-line.scope-target');
+      expect(scopeTargetLine).not.toBeNull();
+
+      const legendItems = panel.querySelectorAll('.burnup-predictor-legend-item');
+      const scopeTargetItem = Array.from(legendItems).find(item => 
+        item.textContent?.includes('Scope target')
+      );
+      expect(scopeTargetItem).not.toBeUndefined();
+    });
+
+    it('displays scope target legend hint', () => {
+      const data: BurnupChartData = {
+        chartType: 'burnup',
+        completed: 50,
+        total: 100,
+        completedData: [],
+      };
+
+      const panel = createStatsPanel(data);
+
+      const hint = panel.querySelector('.burnup-predictor-legend-hint');
+      expect(hint).not.toBeNull();
+      expect(hint?.textContent).toContain('Duplicate');
+      expect(hint?.textContent).toContain('Not planned');
+    });
+
     it('appends panel to main or body if chart container not found', () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
