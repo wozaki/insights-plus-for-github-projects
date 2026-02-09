@@ -189,17 +189,17 @@
 .burnup-predictor-legend-line.ideal {
   background: repeating-linear-gradient(90deg,
       #f5a623,
-      #f5a623 4px,
-      transparent 4px,
-      transparent 8px);
+      #f5a623 2px,
+      transparent 2px,
+      transparent 4px);
 }
 
 .burnup-predictor-legend-line.current-dashed {
   background: repeating-linear-gradient(90deg,
       var(--burnup-accent-blue),
-      var(--burnup-accent-blue) 4px,
-      transparent 4px,
-      transparent 8px);
+      var(--burnup-accent-blue) 2px,
+      transparent 2px,
+      transparent 4px);
 }
 
 .burnup-predictor-legend-hint {
@@ -212,8 +212,8 @@
 
 .burnup-predictor-legend-line.scope-target {
   background: repeating-linear-gradient(90deg,
-      #cbe044,
-      #cbe044 2px,
+      #b6c93c,
+      #b6c93c 2px,
       transparent 2px,
       transparent 4px);
 }

@@ -95,7 +95,7 @@ function createVerticalMarker(
   plotTop: number, 
   plotHeight: number, 
   color: string,
-  dashArray: string = '4,4'
+  dashArray: string = '2,2'
 ): SVGLineElement {
   const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   line.setAttribute('x1', String(x));
@@ -222,7 +222,7 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
       currentLine.setAttribute('y2', String(endY));
       currentLine.setAttribute('stroke', '#58a6ff');
       currentLine.setAttribute('stroke-width', '2');
-      currentLine.setAttribute('stroke-dasharray', '6,4');
+      currentLine.setAttribute('stroke-dasharray', '2,2');
       currentLine.setAttribute('opacity', '0.8');
       g.appendChild(currentLine);
 
@@ -303,7 +303,7 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
         idealLine.setAttribute('y2', String(clippedEndY));
         idealLine.setAttribute('stroke', '#f5a623');
         idealLine.setAttribute('stroke-width', '2');
-        idealLine.setAttribute('stroke-dasharray', '6,4');
+        idealLine.setAttribute('stroke-dasharray', '2,2');
         idealLine.setAttribute('opacity', '0.8');
         g.appendChild(idealLine);
 
@@ -340,7 +340,7 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
   scopeTargetLine.setAttribute('y1', String(targetY));
   scopeTargetLine.setAttribute('x2', String(plotLeft + plotWidth));
   scopeTargetLine.setAttribute('y2', String(targetY));
-  scopeTargetLine.setAttribute('stroke', '#cbe044');
+  scopeTargetLine.setAttribute('stroke', '#b6c93c');
   scopeTargetLine.setAttribute('stroke-width', '2');
   scopeTargetLine.setAttribute('stroke-dasharray', '2,2');
   scopeTargetLine.setAttribute('opacity', '0.8');
@@ -351,7 +351,7 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     'Scope target',
     plotLeft + 4,
     targetY,
-    '#cbe044',
+    '#b6c93c',
     'above',
     0,
     'start'
@@ -365,11 +365,11 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     const todayMarkerX = plotLeft + todayRelativeX;
     
     // Vertical line for today
-    const todayLine = createVerticalMarker(todayMarkerX, plotTop, plotHeight, '#3fb950', '2,2');
+    const todayLine = createVerticalMarker(todayMarkerX, plotTop, plotHeight, '#e05944', '2,2');
     g.appendChild(todayLine);
     
     // Today label (at bottom, row 0 - first row)
-    const todayLabel = createLabel('Today', todayMarkerX, plotTop + plotHeight, '#3fb950', 'below', 0);
+    const todayLabel = createLabel('Today', todayMarkerX, plotTop + plotHeight, '#e05944', 'below', 0);
     g.appendChild(todayLabel);
   }
 
