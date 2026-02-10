@@ -43,7 +43,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/chrome": "^0.0.251",
+    "@types/chrome": "^0.1.0",
     "@types/jsdom": "^27.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
