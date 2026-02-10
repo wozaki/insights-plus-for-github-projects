@@ -8,7 +8,7 @@
   },
   "version": "0.2.2",
   "type": "module",
-  "packageManager": "pnpm@10.26.1",
+  "packageManager": "pnpm@10.29.2",
   "description": "A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more",
   "scripts": {
     "dev": "wxt",
