@@ -2,7 +2,7 @@
 // Responsibility: Draw SVG overlay
 
 import type { ChartInfo, BurnupChartData, Velocity, Prediction } from './types';
-import { getOpenValueAtEndDate, getCompletedDataPoints } from './data-processor';
+import { getCompletedDataPoints } from './data-processor';
 
 /**
  * Get current date in user's local timezone
@@ -265,27 +265,19 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
 
   // Draw ideal velocity line
   // Start point: First point of Completed
-  // End point: Y coordinate of Open at the due date
+  // End point: Scope target (data.total) at the due date
   if (prediction.dueDate) {
-    // Use the value of Open at the end date for the end point's Y coordinate
-    const openValueAtEnd = getOpenValueAtEndDate(
-      data.openData || [], 
-      prediction.dueDate
-    );
-    const endValue = openValueAtEnd !== null ? openValueAtEnd : data.total;
-    
     // Calculate X coordinate from dueDate (may be outside chart range)
     const dueDateRelativeX = toRelativeX(prediction.dueDate);
     const idealEndX = plotLeft + dueDateRelativeX;
-    const idealEndY = plotTop + toRelativeY(endValue);
 
-    if (!isNaN(idealEndX) && !isNaN(idealEndY) && !isNaN(startX) && !isNaN(startY)) {
-      // Calculate the slope of the ideal line
-      const idealSlope = (idealEndY - startY) / (idealEndX - startX);
+    if (!isNaN(idealEndX) && !isNaN(targetY) && !isNaN(startX) && !isNaN(startY)) {
+      // Calculate the slope of the ideal line (targeting Scope target)
+      const idealSlope = (targetY - startY) / (idealEndX - startX);
       
       // Clip the line to the plot area if dueDate is outside chart range
       let clippedEndX = idealEndX;
-      let clippedEndY = idealEndY;
+      let clippedEndY = targetY;
       
       // If dueDate is beyond the chart's right edge, clip to right edge
       if (dueDateRelativeX > plotWidth) {
@@ -313,8 +305,8 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
           const desiredMarker = createVerticalMarker(idealEndX, plotTop, plotHeight, '#f5a623');
           g.appendChild(desiredMarker);
           
-          // Point marker at intersection
-          const desiredPoint = createPointMarker(idealEndX, idealEndY, '#f5a623');
+          // Point marker at intersection with Scope target
+          const desiredPoint = createPointMarker(idealEndX, targetY, '#f5a623');
           g.appendChild(desiredPoint);
           
           // Add label showing due date (at bottom, row 1)
