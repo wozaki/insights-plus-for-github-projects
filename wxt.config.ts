@@ -15,7 +15,7 @@ export default defineConfig({
   manifest: {
     name: 'Insights Plus for GitHub Projects',
     description: 'Enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more',
-    permissions: ['activeTab', 'storage'],
+    permissions: ['storage'],
     host_permissions: ['https://github.com/*'],
     web_accessible_resources: [
       {
