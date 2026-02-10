@@ -1,0 +1,76 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":separateMajorReleases"
+  ],
+  "labels": ["dependencies"],
+  "rangeStrategy": "auto",
+  "postUpdateOptions": ["pnpmDedupe"],
+  "packageRules": [
+    {
+      "description": "WXT framework (core build tool)",
+      "matchPackageNames": ["wxt"],
+      "groupName": "wxt",
+      "automerge": false
+    },
+    {
+      "description": "Chrome extension type definitions",
+      "matchPackageNames": ["@types/chrome"],
+      "groupName": "chrome-types",
+      "automerge": false
+    },
+    {
+      "description": "Testing tools (vitest)",
+      "matchPackageNames": ["vitest", "@vitest/{/,}**"],
+      "groupName": "vitest",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Linters and formatters",
+      "matchPackageNames": [
+        "eslint",
+        "@typescript-eslint/{/,}**",
+        "husky",
+        "lint-staged"
+      ],
+      "groupName": "linters",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "TypeScript",
+      "matchPackageNames": ["typescript"],
+      "groupName": "typescript",
+      "automerge": false
+    },
+    {
+      "description": "Test utilities",
+      "matchPackageNames": ["jsdom", "@types/jsdom"],
+      "groupName": "test-utils",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "pnpm package manager",
+      "matchDepTypes": ["packageManager"],
+      "groupName": "pnpm",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Do not automerge major version updates",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
+}
