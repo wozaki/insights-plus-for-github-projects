@@ -6,7 +6,7 @@
       "spawn-sync"
     ]
   },
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "packageManager": "pnpm@10.26.1",
   "description": "A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more",
