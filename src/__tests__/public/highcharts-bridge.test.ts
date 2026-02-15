@@ -12,6 +12,8 @@ describe('highcharts-bridge', () => {
   const bridgeScriptPath = resolve(__dirname, '../../public/highcharts-bridge.js');
   const bridgeScript = readFileSync(bridgeScriptPath, 'utf-8');
 
+  const fakeNow = new Date('2026-01-28T00:00:00').getTime();
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-01-28'));
@@ -22,6 +24,30 @@ describe('highcharts-bridge', () => {
     });
     window = dom.window as unknown as Window & typeof globalThis;
     document = window.document;
+
+    // vi.useFakeTimers() / vi.setSystemTime() only fakes Date in the Vitest (Node.js) context.
+    // JSDOM has its own Date, so new Date() inside highcharts-bridge.js
+    // (executed via runScripts: 'dangerously') returns the real system time.
+    // Without this override, test results would vary depending on the actual date,
+    // so we override Date inside JSDOM to return the same faked time.
+    const overrideScript = document.createElement('script');
+    overrideScript.textContent = `
+      (function() {
+        var OrigDate = Date;
+        var fakeNow = ${fakeNow};
+        function FakeDate(...args) {
+          if (args.length === 0) return new OrigDate(fakeNow);
+          if (new.target) return new OrigDate(...args);
+          return new OrigDate(fakeNow).toString();
+        }
+        FakeDate.prototype = OrigDate.prototype;
+        FakeDate.now = function() { return fakeNow; };
+        FakeDate.parse = OrigDate.parse;
+        FakeDate.UTC = OrigDate.UTC;
+        window.Date = FakeDate;
+      })();
+    `;
+    document.head.appendChild(overrideScript);
   });
 
   afterEach(() => {
@@ -273,7 +299,7 @@ describe('highcharts-bridge', () => {
     });
 
     it('uses the latest point before today', async () => {
-      // Today is set to 2026-01-28 in beforeEach
+      // Today is set to 2026-01-28 (faked in both Vitest and JSDOM)
       const svg = createBurnupChartSVG({
         completedPoints: [
           { date: 'Jan 15', value: 30 },
