@@ -2,6 +2,8 @@
 
 import type { Velocity, BurnupChartData } from './types';
 import { injectBridgeScript } from '../shared/script-injector';
+import { validateXAxis, validatePeriod } from './chart-config-validator';
+import { showConfigWarning } from './config-warning';
 import { calculateVelocity } from './velocity-calculator';
 import { calculatePrediction } from './prediction-calculator';
 import { createStatsPanel, updatePrediction } from './stats-panel';
@@ -11,6 +13,13 @@ import { matchesStorageKey, generateStorageKey, STORAGE_KEY_BURNUP_LOOKBACK_DAYS
 import './style.css';
 
 export async function initializeBurnup(): Promise<void> {
+  // Phase 1: Validate X-axis setting (DOM-only, no bridge script needed)
+  const xAxisError = validateXAxis();
+  if (xAxisError) {
+    showConfigWarning([xAxisError]);
+    return;
+  }
+
   let chartData: BurnupChartData | null = null;
   let startDate: Date | null = null;
   let startValue = 0;
@@ -86,6 +95,15 @@ export async function initializeBurnup(): Promise<void> {
   if (!burnupData.completedData || burnupData.completedData.length === 0) {
     console.warn('[Burnup Predictor] No completed data found');
     return;
+  }
+
+  // Phase 2: Validate period setting (requires chart data)
+  if (burnupData.chartInfo?.axes?.xMax) {
+    const periodError = validatePeriod(burnupData.chartInfo.axes.xMax);
+    if (periodError) {
+      showConfigWarning([periodError]);
+      return;
+    }
   }
 
   chartData = burnupData;

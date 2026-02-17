@@ -69,6 +69,9 @@ export default defineContentScript({
         const overlay = document.getElementById('burnup-predictor-overlay');
         if (overlay) overlay.remove();
         
+        const configWarning = document.querySelector('.burnup-config-warning');
+        if (configWarning) configWarning.remove();
+        
         setTimeout(initialize, 1000);
       }
     }).observe(document.body, { childList: true, subtree: true });
