@@ -85,20 +85,20 @@
       const ariaLabel = point.getAttribute('aria-label');
       if (!ariaLabel) return;
 
-      // Parse aria-label format: "Iteration 5, 13.5. exam-maker-devs."
-      // or "Iteration 1, 10." (without team name)
+      // Parse aria-label format: "Iteration 5, 13.5. awesome-team."
+      // or "Iteration 1, 10." (without group name)
       const match = ariaLabel.match(/^(.+?),\s*([\d.]+)\.\s*(.*)$/);
       if (!match) return;
 
       const name = match[1].trim();
       const estimate = parseFloat(match[2]);
-      const teamName = match[3].replace(/\.$/, '').trim() || undefined;
+      const groupName = match[3].replace(/\.$/, '').trim() || undefined;
 
       if (!isNaN(estimate)) {
         iterations.push({
           name,
           estimate,
-          teamName,
+          groupName,
           index,
         });
       }

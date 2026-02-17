@@ -84,7 +84,7 @@
   text-align: right !important;
 }
 
-.velocity-calculator-th-team {
+.velocity-calculator-th-group {
   min-width: 100px;
 }
 
@@ -121,7 +121,7 @@
   color: var(--velocity-accent-blue);
 }
 
-.velocity-calculator-td-team {
+.velocity-calculator-td-group {
   color: var(--velocity-text-secondary);
   font-size: 12px;
 }

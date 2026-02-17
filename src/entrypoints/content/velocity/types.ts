@@ -5,7 +5,7 @@ import type { ChartInfo } from '../shared/types';
 export interface IterationData {
   name: string;        // "Iteration 5"
   estimate: number;    // 13.5
-  teamName?: string;   // "exam-maker-devs"
+  groupName?: string;   // "awesome-team"
   index: number;       // Original index for ordering
 }
 

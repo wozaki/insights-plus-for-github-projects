@@ -55,7 +55,7 @@ export async function createVelocityStatsPanel(data: VelocityChartData): Promise
             </th>
             <th class="velocity-calculator-th-iteration">Iteration</th>
             <th class="velocity-calculator-th-estimate">Estimate</th>
-            ${data.iterations.some(iter => iter.teamName) ? '<th class="velocity-calculator-th-team">Team</th>' : ''}
+            ${data.iterations.some(iter => iter.groupName) ? '<th class="velocity-calculator-th-group">Group</th>' : ''}
           </tr>
         </thead>
         <tbody id="velocity-iterations-body">
@@ -96,7 +96,7 @@ function renderIterationsTable(iterations: IterationData[]): void {
   const tbody = document.getElementById('velocity-iterations-body');
   if (!tbody) return;
 
-  const hasTeamColumn = iterations.some(iter => iter.teamName);
+  const hasGroupColumn = iterations.some(iter => iter.groupName);
 
   // Sort iterations by index (descending - newest first)
   const sortedIterations = [...iterations].sort((a, b) => b.index - a.index);
@@ -113,7 +113,7 @@ function renderIterationsTable(iterations: IterationData[]): void {
       </td>
       <td class="velocity-calculator-td-iteration">${escapeHtml(iter.name)}</td>
       <td class="velocity-calculator-td-estimate">${iter.estimate.toFixed(1)}</td>
-      ${hasTeamColumn ? `<td class="velocity-calculator-td-team">${escapeHtml(iter.teamName || '-')}</td>` : ''}
+      ${hasGroupColumn ? `<td class="velocity-calculator-td-group">${escapeHtml(iter.groupName || '-')}</td>` : ''}
     </tr>
   `).join('');
 
