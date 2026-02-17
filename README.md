@@ -15,9 +15,13 @@ Extends GitHub Projects' burn-up chart with velocity analysis and completion pre
 - 📅 **Completion Prediction Date**: Displays the predicted completion date if the current velocity is maintained
 - 📊 **Statistics Panel**: Displays total estimate, completed estimate, and completion percentage
 
+<img src="docs/images/screenshot-Burnup-Predictor.png" alt="Burn-up Chart Enhancement" width="700">
+
 ### 2. Average Velocity Calculation across Multiple Iterations
 
 Calculates and displays the average velocity across multiple iterations in bar/column charts.
+
+<img src="docs/images/screenshot-Velocity-Calculator.png" alt="Average Velocity Calculation" width="700">
 
 ## Installation
 
