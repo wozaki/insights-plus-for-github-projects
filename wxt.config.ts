@@ -16,12 +16,6 @@ export default defineConfig({
     name: 'Insights Plus for GitHub Projects',
     description: 'Enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more',
     permissions: ['storage'],
-    web_accessible_resources: [
-      {
-        resources: ['highcharts-bridge.js'],
-        matches: ['https://github.com/*'],
-      },
-    ],
     action: {
       default_icon: {
         '16': 'icons/icon16.png',

@@ -1,33 +1,34 @@
-// GitHub Project Insights - Script Injector Module
-// Responsibility: Inject script to retrieve Highcharts data
-
 import type { BurnupChartData } from '../burnup/types';
 import type { VelocityChartData } from '../velocity/types';
 
 export type ChartDataResult = BurnupChartData | VelocityChartData | null;
 
+const REQUEST_EVENT = 'insights-plus-request-data';
+const RESPONSE_EVENT = 'burnup-chart-data';
+const TIMEOUT_MS = 15000;
+
 /**
- * Inject script to retrieve Highcharts data
+ * Request chart data from the bridge content script running in MAIN world.
+ * Sends a request event and waits for the response event.
  */
 export function injectBridgeScript(): Promise<ChartDataResult> {
   return new Promise((resolve) => {
-    let chartData: ChartDataResult = null;
+    let resolved = false;
 
-    window.addEventListener('burnup-chart-data', (e: Event) => {
+    window.addEventListener(RESPONSE_EVENT, (e: Event) => {
+      if (resolved) return;
+      resolved = true;
       const customEvent = e as CustomEvent<ChartDataResult>;
-      chartData = customEvent.detail;
-      resolve(chartData);
+      resolve(customEvent.detail);
     }, { once: true });
 
-    const script = document.createElement('script');
-    script.src = chrome.runtime.getURL('/highcharts-bridge.js');
-    script.onload = () => script.remove();
-    (document.head || document.documentElement).appendChild(script);
+    window.dispatchEvent(new CustomEvent(REQUEST_EVENT));
 
     setTimeout(() => {
-      if (!chartData) {
+      if (!resolved) {
+        resolved = true;
         resolve(null);
       }
-    }, 10000);
+    }, TIMEOUT_MS);
   });
 }

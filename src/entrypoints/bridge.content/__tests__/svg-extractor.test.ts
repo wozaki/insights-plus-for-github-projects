@@ -1,63 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { JSDOM } from 'jsdom';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {
+  detectChartType,
+  extractFromColumnChart,
+  extractFromSVG,
+  extractDateRangeFromLabels,
+  type BurnupChartResult,
+} from '../svg-extractor';
 
-describe('highcharts-bridge', () => {
-  let dom: JSDOM;
-  let window: Window & typeof globalThis;
-  let document: Document;
-
-  // Load the bridge script
-  const bridgeScriptPath = resolve(__dirname, '../../public/highcharts-bridge.js');
-  const bridgeScript = readFileSync(bridgeScriptPath, 'utf-8');
-
-  const fakeNow = new Date('2026-01-28T00:00:00').getTime();
-
+describe('svg-extractor', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-01-28'));
-    
-    dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-      runScripts: 'dangerously',
-      url: 'https://github.com/test/project/insights/burnup',
-    });
-    window = dom.window as unknown as Window & typeof globalThis;
-    document = window.document;
-
-    // vi.useFakeTimers() / vi.setSystemTime() only fakes Date in the Vitest (Node.js) context.
-    // JSDOM has its own Date, so new Date() inside highcharts-bridge.js
-    // (executed via runScripts: 'dangerously') returns the real system time.
-    // Without this override, test results would vary depending on the actual date,
-    // so we override Date inside JSDOM to return the same faked time.
-    const overrideScript = document.createElement('script');
-    overrideScript.textContent = `
-      (function() {
-        var OrigDate = Date;
-        var fakeNow = ${fakeNow};
-        function FakeDate(...args) {
-          if (args.length === 0) return new OrigDate(fakeNow);
-          if (new.target) return new OrigDate(...args);
-          return new OrigDate(fakeNow).toString();
-        }
-        FakeDate.prototype = OrigDate.prototype;
-        FakeDate.now = function() { return fakeNow; };
-        FakeDate.parse = OrigDate.parse;
-        FakeDate.UTC = OrigDate.UTC;
-        window.Date = FakeDate;
-      })();
-    `;
-    document.head.appendChild(overrideScript);
+    document.body.innerHTML = '';
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    dom.window.close();
   });
 
-  /**
-   * Create a minimal burnup chart SVG structure for testing
-   */
   function createBurnupChartSVG(options: {
     completedPoints?: Array<{ date: string; value: number }>;
     openPoints?: Array<{ date: string; value: number }>;
@@ -76,7 +36,6 @@ describe('highcharts-bridge', () => {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('highcharts-root');
 
-    // Plot background
     const plotBackground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     plotBackground.classList.add('highcharts-plot-background');
     plotBackground.setAttribute('x', '100');
@@ -85,7 +44,6 @@ describe('highcharts-bridge', () => {
     plotBackground.setAttribute('height', '300');
     svg.appendChild(plotBackground);
 
-    // Y-axis labels
     const yAxisLabels = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     yAxisLabels.classList.add('highcharts-yaxis-labels');
     [yMin, (yMin + yMax) / 2, yMax].forEach((value, i) => {
@@ -96,7 +54,6 @@ describe('highcharts-bridge', () => {
     });
     svg.appendChild(yAxisLabels);
 
-    // X-axis labels
     const xAxisLabelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     xAxisLabelsGroup.classList.add('highcharts-xaxis-labels');
     xLabels.forEach((label, i) => {
@@ -107,37 +64,33 @@ describe('highcharts-bridge', () => {
     });
     svg.appendChild(xAxisLabelsGroup);
 
-    // Legend
     const legend = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legend.classList.add('highcharts-legend');
-    
+
     const completedLegend = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     completedLegend.classList.add('highcharts-legend-item');
     completedLegend.textContent = 'Completed';
     legend.appendChild(completedLegend);
-    
+
     const openLegend = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     openLegend.classList.add('highcharts-legend-item');
     openLegend.textContent = 'Open';
     legend.appendChild(openLegend);
-    
+
     svg.appendChild(legend);
 
-    // Series group
     const seriesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     seriesGroup.classList.add('highcharts-series-group');
 
-    // Completed series
     const completedSeries = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     completedSeries.classList.add('highcharts-series');
-    
+
     const completedArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     completedArea.classList.add('highcharts-area');
     completedArea.setAttribute('d', 'M100 350 L600 200');
     completedArea.setAttribute('fill', '#2da44e');
     completedSeries.appendChild(completedArea);
 
-    // Add completed point markers
     completedPoints.forEach(point => {
       const marker = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       marker.classList.add('highcharts-point');
@@ -147,17 +100,15 @@ describe('highcharts-bridge', () => {
 
     seriesGroup.appendChild(completedSeries);
 
-    // Open series
     const openSeries = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     openSeries.classList.add('highcharts-series');
-    
+
     const openArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     openArea.classList.add('highcharts-area');
     openArea.setAttribute('d', 'M100 250 L600 100');
     openArea.setAttribute('fill', '#bf8700');
     openSeries.appendChild(openArea);
 
-    // Add open point markers
     openPoints.forEach(point => {
       const marker = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       marker.classList.add('highcharts-point');
@@ -171,32 +122,8 @@ describe('highcharts-bridge', () => {
     return svg;
   }
 
-  /**
-   * Execute the bridge script and wait for the result
-   */
-  async function executeBridgeScript(): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Timeout waiting for burnup-chart-data event'));
-      }, 15000);
-
-      window.addEventListener('burnup-chart-data', (e: Event) => {
-        clearTimeout(timeout);
-        resolve((e as CustomEvent).detail);
-      }, { once: true });
-
-      // Execute the script
-      const scriptEl = document.createElement('script');
-      scriptEl.textContent = bridgeScript;
-      document.head.appendChild(scriptEl);
-
-      // Advance timers to trigger the script
-      vi.advanceTimersByTime(2000);
-    });
-  }
-
   describe('extractValuesFromPointMarkers', () => {
-    it('parses integer values correctly', async () => {
+    it('parses integer values correctly', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [
           { date: 'Jan 15', value: 20 },
@@ -211,15 +138,14 @@ describe('highcharts-bridge', () => {
       });
       document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { completed: number; total: number };
+      const result = extractFromSVG() as BurnupChartResult;
 
       expect(result).not.toBeNull();
       expect(result.completed).toBe(48);
-      // Total = Open + Completed
       expect(result.total).toBe(118 + 48);
     });
 
-    it('parses decimal values correctly', async () => {
+    it('parses decimal values correctly', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [
           { date: 'Jan 15', value: 30.5 },
@@ -234,15 +160,14 @@ describe('highcharts-bridge', () => {
       });
       document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { completed: number; total: number };
+      const result = extractFromSVG() as BurnupChartResult;
 
       expect(result).not.toBeNull();
       expect(result.completed).toBe(56.5);
-      // Total = Open + Completed
       expect(result.total).toBe(154.5 + 56.5);
     });
 
-    it('parses values with year in date', async () => {
+    it('parses values with year in date', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [
           { date: 'Feb 9 2026', value: 75.25 },
@@ -255,14 +180,14 @@ describe('highcharts-bridge', () => {
       });
       document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { completed: number; total: number };
+      const result = extractFromSVG() as BurnupChartResult;
 
       expect(result).not.toBeNull();
       expect(result.completed).toBe(75.25);
       expect(result.total).toBe(100.75 + 75.25);
     });
 
-    it('handles Japanese labels (完了/オープン)', async () => {
+    it('handles Japanese labels (完了/オープン)', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [],
         openPoints: [],
@@ -270,10 +195,9 @@ describe('highcharts-bridge', () => {
         xLabels: ['Jan 1 2026', 'Jan 31 2026'],
       });
 
-      // Add Japanese-labeled points manually
       const seriesGroup = svg.querySelector('.highcharts-series-group');
       const completedSeries = seriesGroup?.querySelector('.highcharts-series');
-      
+
       if (completedSeries) {
         const jpCompletedMarker = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         jpCompletedMarker.classList.add('highcharts-point');
@@ -291,59 +215,62 @@ describe('highcharts-bridge', () => {
 
       document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { completed: number; total: number };
+      const result = extractFromSVG() as BurnupChartResult;
 
       expect(result).not.toBeNull();
       expect(result.completed).toBe(45.5);
       expect(result.total).toBe(90.5 + 45.5);
     });
 
-    it('uses the latest point before today', async () => {
-      // Today is set to 2026-01-28 (faked in both Vitest and JSDOM)
+    it('uses the latest point before today', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [
           { date: 'Jan 15', value: 30 },
-          { date: 'Jan 28', value: 50 },  // Today
-          { date: 'Feb 15', value: 80 },  // Future
+          { date: 'Jan 28', value: 50 },
+          { date: 'Feb 15', value: 80 },
         ],
         openPoints: [
           { date: 'Jan 15', value: 100 },
-          { date: 'Jan 28', value: 120 }, // Today
-          { date: 'Feb 15', value: 150 }, // Future
+          { date: 'Jan 28', value: 120 },
+          { date: 'Feb 15', value: 150 },
         ],
         yMax: 200,
         xLabels: ['Jan 1 2026', 'Jan 28 2026', 'Feb 28 2026'],
       });
       document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { completed: number; total: number };
+      const result = extractFromSVG() as BurnupChartResult;
 
       expect(result).not.toBeNull();
-      // Should use Jan 28 values, not Feb 15 (future)
       expect(result.completed).toBe(50);
       expect(result.total).toBe(120 + 50);
     });
   });
 
   describe('chart type detection', () => {
-    it('detects burnup chart from area paths', async () => {
+    it('detects burnup chart from area paths', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [{ date: 'Jan 28', value: 20 }],
         openPoints: [{ date: 'Jan 28', value: 100 }],
         yMax: 150,
         xLabels: ['Jan 1 2026', 'Jan 31 2026'],
       });
-      document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { chartType: string };
+      const chartType = detectChartType(svg);
+      expect(chartType).toBe('burnup');
+    });
 
-      expect(result).not.toBeNull();
-      expect(result.chartType).toBe('burnup');
+    it('returns unknown for empty SVG', () => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('highcharts-root');
+
+      const chartType = detectChartType(svg);
+      expect(chartType).toBe('unknown');
     });
   });
 
   describe('date range extraction', () => {
-    it('extracts date range from x-axis labels (English format)', async () => {
+    it('extracts date range from x-axis labels (English format)', () => {
       const svg = createBurnupChartSVG({
         completedPoints: [{ date: 'Jan 28', value: 20 }],
         openPoints: [{ date: 'Jan 28', value: 100 }],
@@ -352,16 +279,92 @@ describe('highcharts-bridge', () => {
       });
       document.body.appendChild(svg);
 
-      const result = await executeBridgeScript() as { 
-        dateRange: { start: Date; end: Date } 
-      };
+      const result = extractFromSVG() as BurnupChartResult;
 
       expect(result).not.toBeNull();
       expect(result.dateRange).not.toBeNull();
-      expect(result.dateRange.start.getMonth()).toBe(0); // January
+      if (!result.dateRange) return;
+      expect(result.dateRange.start.getMonth()).toBe(0);
       expect(result.dateRange.start.getDate()).toBe(1);
-      expect(result.dateRange.end.getMonth()).toBe(0); // January
+      expect(result.dateRange.end.getMonth()).toBe(0);
       expect(result.dateRange.end.getDate()).toBe(31);
+    });
+  });
+
+  describe('extractDateRangeFromLabels', () => {
+    it('handles Japanese date format', () => {
+      const xDates = [
+        { text: '12月 1', x: 100 },
+        { text: '1月 15 2026', x: 350 },
+      ];
+      const range = extractDateRangeFromLabels(xDates);
+
+      expect(range).not.toBeNull();
+      if (!range) return;
+      expect(range.start.getMonth()).toBe(11);
+      expect(range.start.getDate()).toBe(1);
+      expect(range.end.getMonth()).toBe(0);
+      expect(range.end.getDate()).toBe(15);
+    });
+
+    it('returns null for empty labels', () => {
+      expect(extractDateRangeFromLabels([])).toBeNull();
+    });
+  });
+
+  describe('extractFromColumnChart (velocity)', () => {
+    it('extracts iteration data from column chart', () => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('highcharts-root');
+
+      const plotBackground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      plotBackground.classList.add('highcharts-plot-background');
+      plotBackground.setAttribute('x', '100');
+      plotBackground.setAttribute('y', '50');
+      plotBackground.setAttribute('width', '500');
+      plotBackground.setAttribute('height', '300');
+      svg.appendChild(plotBackground);
+
+      const yAxisLabels = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      yAxisLabels.classList.add('highcharts-yaxis-labels');
+      [0, 10, 20].forEach((value, i) => {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.textContent = String(value);
+        text.setAttribute('y', String(350 - i * 150));
+        yAxisLabels.appendChild(text);
+      });
+      svg.appendChild(yAxisLabels);
+
+      const seriesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const series = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      series.classList.add('highcharts-series');
+
+      const points = [
+        { label: 'Iteration 1, 10. team-a.', d: 'M120 200 L180 200 L180 350 L120 350 Z' },
+        { label: 'Iteration 2, 15. team-a.', d: 'M220 150 L280 150 L280 350 L220 350 Z' },
+      ];
+
+      points.forEach(p => {
+        const point = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        point.classList.add('highcharts-point');
+        point.setAttribute('aria-label', p.label);
+        point.setAttribute('d', p.d);
+        series.appendChild(point);
+      });
+
+      seriesGroup.appendChild(series);
+      svg.appendChild(seriesGroup);
+
+      const result = extractFromColumnChart(svg);
+
+      expect(result).not.toBeNull();
+      if (!result) return;
+      expect(result.chartType).toBe('velocity');
+      expect(result.iterations).toHaveLength(2);
+      expect(result.iterations[0].name).toBe('Iteration 1');
+      expect(result.iterations[0].estimate).toBe(10);
+      expect(result.iterations[0].groupName).toBe('team-a');
+      expect(result.iterations[1].estimate).toBe(15);
     });
   });
 });
