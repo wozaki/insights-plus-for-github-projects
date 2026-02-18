@@ -1,7 +1,7 @@
 # https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
 changelog:
   categories:
-    - title: What's Changed
+    - title: Improvements
       labels:
         - "*"
       exclude:
