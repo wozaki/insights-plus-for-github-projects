@@ -25,15 +25,17 @@ export default defineConfig({
     ],
     action: {
       default_icon: {
-        '16': 'icons/icon16.svg',
-        '48': 'icons/icon48.svg',
-        '128': 'icons/icon128.svg',
+        '16': 'icons/icon16.png',
+        '32': 'icons/icon32.png',
+        '48': 'icons/icon48.png',
+        '128': 'icons/icon128.png',
       },
     },
     icons: {
-      '16': 'icons/icon16.svg',
-      '48': 'icons/icon48.svg',
-      '128': 'icons/icon128.svg',
+      '16': 'icons/icon16.png',
+      '32': 'icons/icon32.png',
+      '48': 'icons/icon48.png',
+      '128': 'icons/icon128.png',
     },
   },
   webExt: {
