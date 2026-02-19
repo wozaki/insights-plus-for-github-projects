@@ -7,6 +7,8 @@ import { waitForHighcharts } from './shared/highcharts-waiter';
 import { waitForChartTypeDetection } from './shared/chart-type-detector';
 import { initializeBurnup } from './burnup';
 import { initializeVelocity } from './velocity';
+import { showLoadingPlaceholder, removeLoadingPlaceholder } from './shared/loading-placeholder';
+import './shared/style.css';
 
 export default defineContentScript({
   matches: PROJECT_INSIGHTS_URL_PATTERNS,
@@ -23,8 +25,11 @@ export default defineContentScript({
         return;
       }
 
+      showLoadingPlaceholder();
+
       const found = await waitForHighcharts();
       if (!found) {
+        removeLoadingPlaceholder();
         return;
       }
 
@@ -39,6 +44,7 @@ export default defineContentScript({
       } else if (chartType === 'velocity') {
         await initializeVelocity();
       } else {
+        removeLoadingPlaceholder();
         console.warn('[Project Insights] Unknown chart type, attempting burnup initialization');
         // Default to burnup for backwards compatibility
         await initializeBurnup();
@@ -47,9 +53,9 @@ export default defineContentScript({
 
     // Initialize after page load completes
     if (document.readyState === 'complete') {
-      setTimeout(initialize, 1000);
+      initialize();
     } else {
-      window.addEventListener('load', () => setTimeout(initialize, 1000));
+      window.addEventListener('load', () => initialize());
     }
 
     // Support for SPA navigation
@@ -71,8 +77,10 @@ export default defineContentScript({
         
         const configWarning = document.querySelector('.burnup-config-warning');
         if (configWarning) configWarning.remove();
+
+        removeLoadingPlaceholder();
         
-        setTimeout(initialize, 1000);
+        setTimeout(initialize, 300);
       }
     }).observe(document.body, { childList: true, subtree: true });
   },

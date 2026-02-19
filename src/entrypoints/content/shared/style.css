@@ -1,0 +1,31 @@
+/* GitHub Project Insights - Shared Styles */
+
+.insights-plus-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  margin-top: 16px;
+  background: var(--burnup-bg-secondary, #161b22);
+  border: 1px solid var(--burnup-border, #30363d);
+  border-radius: 6px;
+  color: var(--burnup-text-secondary, #8b949e);
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  gap: 8px;
+}
+
+.insights-plus-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--burnup-border, #30363d);
+  border-top-color: var(--burnup-accent-blue, #58a6ff);
+  border-radius: 50%;
+  animation: insights-plus-spin 1s linear infinite;
+}
+
+@keyframes insights-plus-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
