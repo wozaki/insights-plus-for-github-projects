@@ -4,28 +4,18 @@
 
 A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more.
 
-## Features
-
-### 1. Burn-up Chart Enhancement
-
-Extends GitHub Projects' burn-up chart with velocity analysis and completion prediction.
-
-- 📈 **Current Velocity Display**: Displays the current velocity slope calculated from past data as a dashed line
-- 🎯 **Ideal Velocity Display**: Displays the ideal velocity required to complete by the deadline as a solid line
-- 📅 **Completion Prediction Date**: Displays the predicted completion date if the current velocity is maintained
-- 📊 **Statistics Panel**: Displays total estimate, completed estimate, and completion percentage
-
-<img src="docs/images/screenshot-Burnup-Predictor.png" alt="Burn-up Chart Enhancement" width="700">
-
-### 2. Average Velocity Calculation across Multiple Iterations
-
-Calculates and displays the average velocity across multiple iterations in bar/column charts.
-
-<img src="docs/images/screenshot-Velocity-Calculator.png" alt="Average Velocity Calculation" width="700">
-
 ## Installation
 
-### Install from Release (Recommended)
+Install from Chrome Web Store (Recommended)
+
+<a href="https://chromewebstore.google.com/detail/insights-plus-for-github/eeadfjedbkhpjbccolcfbhflfckmfcmj">
+  <img src="https://developer.chrome.com/static/docs/webstore/branding/image/YT2Grfi9vEBa2wAPzhWa.png" alt="Available in the Chrome Web Store" width="400">
+</a>
+
+<details>
+<summary>Other installation methods</summary>
+
+### Install from Release
 
 1. Go to the [Releases](https://github.com/wozaki/insights-plus-for-github-projects/releases) page
 2. Download the latest `.zip` file
@@ -49,6 +39,27 @@ Calculates and displays the average velocity across multiple iterations in bar/c
 3. Enable "Developer mode" in the top right
 4. Click "Load unpacked extension"
 5. Select the `.output/chrome-mv3` folder
+
+</details>
+
+## Features
+
+### 1. Burn-up Chart Enhancement
+
+Extends GitHub Projects' burn-up chart with velocity analysis and completion prediction.
+
+- 📈 **Current Velocity Display**: Displays the current velocity slope calculated from past data as a dashed line
+- 🎯 **Ideal Velocity Display**: Displays the ideal velocity required to complete by the deadline as a solid line
+- 📅 **Completion Prediction Date**: Displays the predicted completion date if the current velocity is maintained
+- 📊 **Statistics Panel**: Displays total estimate, completed estimate, and completion percentage
+
+<img src="docs/images/screenshot-Burnup-Predictor.png" alt="Burn-up Chart Enhancement" width="700">
+
+### 2. Average Velocity Calculation across Multiple Iterations
+
+Calculates and displays the average velocity across multiple iterations in bar/column charts.
+
+<img src="docs/images/screenshot-Velocity-Calculator.png" alt="Average Velocity Calculation" width="700">
 
 ## Usage
 
