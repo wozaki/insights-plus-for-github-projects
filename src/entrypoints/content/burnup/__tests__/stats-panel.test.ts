@@ -56,7 +56,7 @@ describe('stats-panel', () => {
   });
 
   describe('createStatsPanel', () => {
-    it('creates a stats panel with correct structure', () => {
+    it('creates a stats panel with correct structure', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 50,
@@ -64,14 +64,14 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       expect(panel.className).toBe('burnup-predictor-stats');
       expect(panel.querySelector('.burnup-predictor-stats-title')).not.toBeNull();
       expect(panel.querySelector('.burnup-predictor-stats-grid')).not.toBeNull();
     });
 
-    it('displays correct completed, remaining, and total values', () => {
+    it('displays correct completed, remaining, and total values', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 30,
@@ -79,7 +79,7 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       const completedEl = panel.querySelector('.burnup-predictor-stat-value.green');
       const remainingEl = panel.querySelectorAll('.burnup-predictor-stat-value')[1];
@@ -90,7 +90,7 @@ describe('stats-panel', () => {
       expect(totalEl?.textContent).toBe('100');
     });
 
-    it('calculates progress percentage correctly', () => {
+    it('calculates progress percentage correctly', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 75,
@@ -98,7 +98,7 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       const progressEl = panel.querySelector('.burnup-predictor-stat-value.orange');
       const progressFill = panel.querySelector('.burnup-predictor-progress-fill') as HTMLElement;
@@ -107,7 +107,7 @@ describe('stats-panel', () => {
       expect(progressFill?.style.width).toBe('75%');
     });
 
-    it('handles zero total correctly', () => {
+    it('handles zero total correctly', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 0,
@@ -115,13 +115,13 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       const progressEl = panel.querySelector('.burnup-predictor-stat-value.orange');
       expect(progressEl?.textContent).toBe('0%');
     });
 
-    it('handles completed exceeding total', () => {
+    it('handles completed exceeding total', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 150,
@@ -129,7 +129,7 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       const remainingEl = panel.querySelectorAll('.burnup-predictor-stat-value')[1];
       const progressEl = panel.querySelector('.burnup-predictor-stat-value.orange');
@@ -138,7 +138,7 @@ describe('stats-panel', () => {
       expect(progressEl?.textContent).toBe('100%');
     });
 
-    it('removes existing panel before creating new one', () => {
+    it('removes existing panel before creating new one', async () => {
       const existingPanel = document.createElement('div');
       existingPanel.className = 'burnup-predictor-stats';
       document.body.appendChild(existingPanel);
@@ -150,13 +150,13 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      createStatsPanel(data);
+      await createStatsPanel(data);
 
       const panels = document.querySelectorAll('.burnup-predictor-stats');
       expect(panels.length).toBe(1);
     });
 
-    it('appends panel to chart container if available', () => {
+    it('appends panel to chart container if available', async () => {
       const chartContainer = document.createElement('div');
       chartContainer.className = 'highcharts-container';
       const parent = document.createElement('div');
@@ -170,12 +170,12 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       expect(parent.contains(panel)).toBe(true);
     });
 
-    it('displays scope target legend item', () => {
+    it('displays scope target legend item', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 50,
@@ -183,7 +183,7 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       const scopeTargetLine = panel.querySelector('.burnup-predictor-legend-line.scope-target');
       expect(scopeTargetLine).not.toBeNull();
@@ -195,7 +195,7 @@ describe('stats-panel', () => {
       expect(scopeTargetItem).not.toBeUndefined();
     });
 
-    it('displays scope target legend hint', () => {
+    it('displays scope target legend hint', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 50,
@@ -203,7 +203,7 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       const hint = panel.querySelector('.burnup-predictor-legend-hint');
       expect(hint).not.toBeNull();
@@ -211,7 +211,7 @@ describe('stats-panel', () => {
       expect(hint?.textContent).toContain('Not planned');
     });
 
-    it('appends panel to main or body if chart container not found', () => {
+    it('appends panel to main or body if chart container not found', async () => {
       const data: BurnupChartData = {
         chartType: 'burnup',
         completed: 50,
@@ -219,7 +219,7 @@ describe('stats-panel', () => {
         completedData: [],
       };
 
-      const panel = createStatsPanel(data);
+      const panel = await createStatsPanel(data);
 
       expect(document.body.contains(panel)).toBe(true);
     });

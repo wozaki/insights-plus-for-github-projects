@@ -9,6 +9,7 @@ import {
   getDefaultIterationCount
 } from './settings';
 import { calculateAverageVelocity } from './average-calculator';
+import { removeLoadingPlaceholder } from '../shared/loading-placeholder';
 
 let currentIterations: IterationData[] = [];
 let currentSelectedNames: string[] = [];
@@ -17,6 +18,8 @@ let currentSelectedNames: string[] = [];
  * Create velocity statistics panel
  */
 export async function createVelocityStatsPanel(data: VelocityChartData): Promise<HTMLElement> {
+  await removeLoadingPlaceholder();
+
   const existing = document.querySelector('.velocity-calculator-stats');
   if (existing) {
     existing.remove();

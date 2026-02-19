@@ -10,11 +10,14 @@ import {
   setTargetDate,
   clearTargetDate
 } from './settings';
+import { removeLoadingPlaceholder } from '../shared/loading-placeholder';
 
 /**
  * Create statistics panel
  */
-export function createStatsPanel(data: BurnupChartData): HTMLElement {
+export async function createStatsPanel(data: BurnupChartData): Promise<HTMLElement> {
+  await removeLoadingPlaceholder();
+
   const existing = document.querySelector('.burnup-predictor-stats');
   if (existing) {
     existing.remove();

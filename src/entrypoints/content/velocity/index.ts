@@ -4,18 +4,21 @@ import type { VelocityChartData } from './types';
 import { injectBridgeScript } from '../shared/script-injector';
 import { createVelocityStatsPanel } from './stats-panel';
 import { matchesStorageKey, generateStorageKey, STORAGE_KEY_VELOCITY_SELECTED_ITERATIONS } from '../shared/storage-key';
+import { removeLoadingPlaceholder } from '../shared/loading-placeholder';
 import './style.css';
 
 export async function initializeVelocity(): Promise<void> {
   // Get chart data
   const data = await injectBridgeScript();
   if (!data || data.chartType !== 'velocity') {
+    removeLoadingPlaceholder();
     console.warn('[Velocity Calculator] No velocity chart data found');
     return;
   }
   
   const velocityData = data as VelocityChartData;
   if (!velocityData.iterations || velocityData.iterations.length === 0) {
+    removeLoadingPlaceholder();
     console.warn('[Velocity Calculator] No iteration data found');
     return;
   }

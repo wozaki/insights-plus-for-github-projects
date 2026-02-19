@@ -10,12 +10,14 @@ import { createStatsPanel, updatePrediction } from './stats-panel';
 import { drawOverlay } from './chart-overlay';
 import { getLookbackDays, getTargetDate } from './settings';
 import { matchesStorageKey, generateStorageKey, STORAGE_KEY_BURNUP_LOOKBACK_DAYS, STORAGE_KEY_BURNUP_TARGET_DATE } from '../shared/storage-key';
+import { removeLoadingPlaceholder } from '../shared/loading-placeholder';
 import './style.css';
 
 export async function initializeBurnup(): Promise<void> {
   // Phase 1: Validate X-axis setting (DOM-only, no bridge script needed)
   const xAxisError = validateXAxis();
   if (xAxisError) {
+    await removeLoadingPlaceholder();
     showConfigWarning([xAxisError]);
     return;
   }
@@ -87,12 +89,14 @@ export async function initializeBurnup(): Promise<void> {
   // Get chart data
   const data = await injectBridgeScript();
   if (!data || data.chartType !== 'burnup') {
+    removeLoadingPlaceholder();
     console.warn('[Burnup Predictor] No burnup chart data found');
     return;
   }
   
   const burnupData = data as BurnupChartData;
   if (!burnupData.completedData || burnupData.completedData.length === 0) {
+    removeLoadingPlaceholder();
     console.warn('[Burnup Predictor] No completed data found');
     return;
   }
@@ -101,13 +105,14 @@ export async function initializeBurnup(): Promise<void> {
   if (burnupData.chartInfo?.axes?.xMax) {
     const periodError = validatePeriod(burnupData.chartInfo.axes.xMax);
     if (periodError) {
+      await removeLoadingPlaceholder();
       showConfigWarning([periodError]);
       return;
     }
   }
 
   chartData = burnupData;
-  createStatsPanel(burnupData);
+  await createStatsPanel(burnupData);
 
   startDate = new Date(burnupData.chartInfo?.axes?.xMin || burnupData.dateRange?.start || Date.now());
   startValue = 0;
