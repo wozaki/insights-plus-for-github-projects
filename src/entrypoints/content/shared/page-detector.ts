@@ -18,10 +18,12 @@ function patternToRegex(pattern: string): RegExp {
   // Escape special regex characters and convert wildcards
   // Note: projects/* should match numeric project IDs, but we use [^/]* for flexibility
   const escaped = pattern
-    .replace(/\./g, '\\.')
-    .replace(/\*/g, '[^/]*') // * matches any characters except /
-    .replace(/\//g, '\\/');
-  
+    // First escape all regex metacharacters, including backslashes
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    // Then convert escaped wildcards ("\*") into a character class that matches any
+    // characters except "/", preserving the original intent of the manifest-style pattern.
+    .replace(/\\\*/g, '[^/]*');
+
   return new RegExp(escaped);
 }
 
