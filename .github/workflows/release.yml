@@ -37,7 +37,7 @@ jobs:
           echo "Tag ${{ steps.version.outputs.tag }} already exists. Skipping."
           exit 0
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
         if: steps.check_tag.outputs.exists == 'false'
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
@@ -55,7 +55,7 @@ jobs:
 
       - name: Create Release
         if: steps.check_tag.outputs.exists == 'false'
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+        uses: softprops/action-gh-release@b25b93d384199fc0fc8c2e126b2d937a0cbeb2ae # v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           files: .output/*.zip
