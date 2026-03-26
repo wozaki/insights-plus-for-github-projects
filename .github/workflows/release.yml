@@ -37,7 +37,7 @@ jobs:
           echo "Tag ${{ steps.version.outputs.tag }} already exists. Skipping."
           exit 0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         if: steps.check_tag.outputs.exists == 'false'
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
