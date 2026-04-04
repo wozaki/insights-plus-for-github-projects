@@ -10,7 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["chrome"]
   },
   "include": ["src/**/*", "wxt.config.ts"],
   "exclude": ["node_modules", ".output", "dist"]
