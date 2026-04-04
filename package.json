@@ -52,7 +52,7 @@
     "husky": "^9.1.7",
     "jsdom": "^29.0.0",
     "lint-staged": "^16.0.0",
-    "typescript": "^5.3.3",
+    "typescript": "^6.0.0",
     "vitest": "^4.0.16",
     "wxt": "^0.20.13"
   }
