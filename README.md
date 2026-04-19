@@ -1,6 +1,6 @@
 # Insights Plus for GitHub Projects
 
-![CI](https://img.shields.io/github/actions/workflow/status/wozaki/insights-plus-for-github-projects/ci.yml) ![Release](https://img.shields.io/github/v/release/wozaki/insights-plus-for-github-projects) [![License](https://img.shields.io/github/license/wozaki/insights-plus-for-github-projects)](LICENSE) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wozaki/insights-plus-for-github-projects)
+![CI](https://img.shields.io/github/actions/workflow/status/wozaki/insights-plus-for-github-projects/ci.yml) ![Release](https://img.shields.io/github/v/release/wozaki/insights-plus-for-github-projects) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eeadfjedbkhpjbccolcfbhflfckmfcmj?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/insights-plus-for-github/eeadfjedbkhpjbccolcfbhflfckmfcmj?utm_source=github&utm_medium=readme&utm_campaign=badge) [![License](https://img.shields.io/github/license/wozaki/insights-plus-for-github-projects)](LICENSE) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wozaki/insights-plus-for-github-projects)
 
 A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more.
 
@@ -8,7 +8,7 @@ A Chrome extension that enhances GitHub Projects with insights like velocity pre
 
 Install from Chrome Web Store (Recommended)
 
-<a href="https://chromewebstore.google.com/detail/insights-plus-for-github/eeadfjedbkhpjbccolcfbhflfckmfcmj">
+<a href="https://chromewebstore.google.com/detail/insights-plus-for-github/eeadfjedbkhpjbccolcfbhflfckmfcmj?utm_source=github&utm_medium=readme&utm_campaign=install_button">
   <img src="https://developer.chrome.com/static/docs/webstore/branding/image/YT2Grfi9vEBa2wAPzhWa.png" alt="Available in the Chrome Web Store" width="400">
 </a>
 
