@@ -1,0 +1,53 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New version to release (e.g. 1.2.3)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: main
+
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: ${{ inputs.version }}. Expected format: X.Y.Z"
+            exit 1
+          fi
+
+      - name: Check tag doesn't already exist
+        run: |
+          git fetch --tags
+          if git tag -l "v${{ inputs.version }}" | grep -q .; then
+            echo "Tag v${{ inputs.version }} already exists."
+            exit 1
+          fi
+
+      - name: Bump package.json version
+        run: npm pkg set version="${{ inputs.version }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "Bump version to ${{ inputs.version }}"
+          git push origin HEAD:main
+
+      # A push made with GITHUB_TOKEN doesn't fire other workflows' `on: push`
+      # triggers, so release.yml won't start on its own; dispatch it explicitly.
+      - name: Trigger release workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run release.yml --ref main
