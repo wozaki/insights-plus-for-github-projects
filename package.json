@@ -1,11 +1,5 @@
 {
   "name": "insights-plus-for-github-projects",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "spawn-sync"
-    ]
-  },
   "version": "0.3.3",
   "type": "module",
   "packageManager": "pnpm@11.12.0",
