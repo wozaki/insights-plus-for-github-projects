@@ -163,17 +163,29 @@ pnpm wxt zip
 
 ### Release
 
-To create a new release:
+To create a new release, run the **Bump Version** workflow from the [Actions tab](../../actions/workflows/bump-version.yml) (or `gh workflow run bump-version.yml -f version=1.2.3`), entering the new version number.
+
+This will automatically:
+- Update the `version` field in `package.json` and commit it to `main`
+- Trigger the **Release** workflow, which:
+  - Creates a git tag (e.g., `v1.2.3`)
+  - Builds the extension
+  - Creates a GitHub Release with the built `.zip` file
+  - Submits the build to the Chrome Web Store
+
+If the tag already exists, the release workflow will skip the release.
+
+<details>
+<summary>Manual alternative</summary>
+
+You can also trigger a release by pushing the version bump yourself:
 
 1. Update the `version` field in `package.json`
 2. Commit and push to the `main` branch
 
-GitHub Actions will automatically:
-- Create a git tag (e.g., `v1.0.0`)
-- Build the extension
-- Create a GitHub Release with the built `.zip` file
+This triggers the same Release workflow.
 
-If the tag already exists, the workflow will skip the release.
+</details>
 
 
 ### Tech Stack
