@@ -26,6 +26,9 @@ const COLUMNS = JSON.stringify([
   { id: 369979541, name: 'Start on', dataType: 'date' },
   { id: 369979609, name: 'End on', dataType: 'date' },
   { id: 256932131, name: 'Estimate', dataType: 'number' },
+  { id: 'Created', name: 'Created', dataType: 'created' },
+  { id: 'Updated', name: 'Updated', dataType: 'updated' },
+  { id: 'Closed', name: 'Closed', dataType: 'closed' },
 ]);
 
 const NODES = JSON.stringify({
@@ -51,12 +54,20 @@ const NODES = JSON.stringify({
 });
 
 describe('parseColumns / getDateFields', () => {
-  it('extracts only date-typed fields with stringified ids', () => {
+  it('extracts custom Date fields plus built-in Created/Updated/Closed, with stringified ids', () => {
     const fields = getDateFields(parseColumns(COLUMNS));
     expect(fields).toEqual([
       { id: '369979541', name: 'Start on' },
       { id: '369979609', name: 'End on' },
+      { id: 'Created', name: 'Created' },
+      { id: 'Updated', name: 'Updated' },
+      { id: 'Closed', name: 'Closed' },
     ]);
+  });
+
+  it('excludes non-date fields such as Title, Status, and number fields', () => {
+    const fields = getDateFields(parseColumns(COLUMNS));
+    expect(fields.some((f) => f.name === 'Title' || f.name === 'Status' || f.name === 'Estimate')).toBe(false);
   });
 });
 
@@ -86,6 +97,24 @@ describe('parseNodes / extractItems', () => {
       endDate: null,
       statusName: 'Done',
     });
+  });
+
+  it('resolves a date from a built-in field (e.g. Created), which uses the same {value} shape', () => {
+    const nodes = parseNodes(
+      JSON.stringify({
+        nodes: [
+          {
+            contentId: 1,
+            memexProjectColumnValues: [
+              { memexProjectColumnId: 'Created', value: { value: '2026-02-11T04:13:33Z' } },
+            ],
+          },
+        ],
+      }),
+    );
+    const options = getStatusOptions(parseColumns(COLUMNS));
+    const items = extractItems(nodes, 'Created', null, options);
+    expect(items.get(1)?.startDate).toBe('2026-02-11');
   });
 
   it('returns null dates when field ids are unconfigured', () => {
@@ -120,7 +149,7 @@ describe('readMemexData', () => {
   it('reads fields and items from a document', () => {
     const data = readMemexData('369979541', '369979609', docWith(COLUMNS, NODES));
     expect(data).not.toBeNull();
-    expect(data!.dateFields).toHaveLength(2);
+    expect(data!.dateFields).toHaveLength(5);
     expect(data!.itemsByContentId.get(3924644068)?.startDate).toBe('2026-07-17');
   });
 
@@ -131,7 +160,7 @@ describe('readMemexData', () => {
   it('still returns field metadata when the items script is absent', () => {
     const data = readMemexData('369979541', '369979609', docWith(COLUMNS, null));
     expect(data).not.toBeNull();
-    expect(data!.dateFields).toHaveLength(2);
+    expect(data!.dateFields).toHaveLength(5);
     expect(data!.itemsByContentId.size).toBe(0);
   });
 

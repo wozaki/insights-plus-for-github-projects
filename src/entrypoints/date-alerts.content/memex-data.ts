@@ -18,6 +18,9 @@ import { toDateOnly } from './date-utils';
 const COLUMNS_SCRIPT_ID = 'memex-columns-data';
 const ITEMS_SCRIPT_ID = 'memex-paginated-items-data';
 
+/** dataType values that hold a date value: user-defined Date fields plus GitHub's built-in date fields. */
+const DATE_LIKE_DATA_TYPES = new Set(['date', 'created', 'updated', 'closed']);
+
 interface MemexColumn {
   id: string | number;
   name: string;
@@ -59,10 +62,10 @@ export function parseNodes(json: string): MemexNode[] {
   return Array.isArray(nodes) ? (nodes as MemexNode[]) : [];
 }
 
-/** Extract Date-typed fields as selectable options (id stringified). */
+/** Extract date-valued fields (custom Date fields plus Created/Updated/Closed) as selectable options. */
 export function getDateFields(columns: MemexColumn[]): DateFieldOption[] {
   return columns
-    .filter((column) => column.dataType === 'date')
+    .filter((column) => DATE_LIKE_DATA_TYPES.has(column.dataType))
     .map((column) => ({ id: String(column.id), name: column.name }));
 }
 
