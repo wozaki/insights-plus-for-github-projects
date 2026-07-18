@@ -43,9 +43,9 @@ function matches(normalized: string, keywords: string[]): boolean {
  * nothing configured (both lists empty) falls back to keyword matching on
  * the option name, preserving today's zero-config default. But once *any*
  * mapping is configured, it takes full control — an option left out of both
- * lists resolves to 'todo' rather than silently falling back to a keyword
- * guess, so the user isn't second-guessed by hidden matching after they've
- * explicitly curated the list.
+ * lists resolves to 'unknown' (no alerts at all) rather than silently
+ * falling back to a keyword guess, so leaving something unselected reads as
+ * "don't alert on this" rather than an implicit "todo".
  */
 export function resolveStatusCategory(
   optionId: string | null,
@@ -57,7 +57,7 @@ export function resolveStatusCategory(
   if (hasExplicitMapping) {
     if (optionId && mapping.doneStatusIds.includes(optionId)) return 'done';
     if (optionId && mapping.inProgressStatusIds.includes(optionId)) return 'inProgress';
-    return 'todo';
+    return 'unknown';
   }
 
   return classifyStatus(optionName);

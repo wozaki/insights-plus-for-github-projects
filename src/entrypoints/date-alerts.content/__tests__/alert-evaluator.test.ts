@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evaluate, DEFAULT_AGE_THRESHOLDS } from '../alert-evaluator';
-import type { StatusCategory } from '../types';
+import { resolveStatusCategory } from '../status-classifier';
+import type { StatusCategory, StatusMapping } from '../types';
 
 const TODAY = '2026-07-18';
 
@@ -84,9 +85,8 @@ describe('evaluate - End cell', () => {
     expect(result.end).toEqual({ type: 'overdue', text: 'Overdue 3d', level: 'warning' });
   });
 
-  it('flags Overdue even for an unrecognized status, since "not done" means anything but done', () => {
-    const result = run({ status: 'unknown', endDate: '2026-07-15' });
-    expect(result.end).toEqual({ type: 'overdue', text: 'Overdue 3d', level: 'warning' });
+  it('does not flag Overdue for an unrecognized status (stays silent rather than guess)', () => {
+    expect(run({ status: 'unknown', endDate: '2026-07-15' }).end).toBeNull();
   });
 
   it('flags Missing End when done without an end date', () => {
@@ -135,5 +135,25 @@ describe('evaluate - combined & priorities', () => {
 
   it('exposes sane default thresholds', () => {
     expect(DEFAULT_AGE_THRESHOLDS).toEqual({ caution: 6, warning: 11 });
+  });
+});
+
+describe('evaluate - combined with an explicit status mapping (resolveStatusCategory)', () => {
+  const mapping: StatusMapping = { inProgressStatusIds: ['s-progress'], doneStatusIds: ['s-done'] };
+
+  it('emits no alerts at all for a status left unselected in an active mapping, even with a stale past end date', () => {
+    // "Blocked" is neither in the In Progress nor Done list — should be fully silent,
+    // not silently treated as an unfinished/overdue item.
+    const status = resolveStatusCategory('s-blocked', 'Blocked', mapping);
+    const result = evaluate({ startDate: '2026-07-01', endDate: '2026-07-01', status, today: TODAY });
+    expect(result.start).toBeNull();
+    expect(result.end).toBeNull();
+  });
+
+  it('still evaluates normally for statuses that are selected in the mapping', () => {
+    const status = resolveStatusCategory('s-progress', 'Custom In Progress Name', mapping);
+    const result = evaluate({ startDate: '2026-07-01', endDate: null, status, today: TODAY });
+    expect(result.start?.type).toBe('age');
+    expect(result.end).toEqual({ type: 'missingEnd', text: '⚠ Missing', level: 'caution' });
   });
 });

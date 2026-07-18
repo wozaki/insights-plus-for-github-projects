@@ -47,13 +47,13 @@ describe('resolveStatusCategory', () => {
     expect(resolveStatusCategory('s4', 'Shipped 🚀', mapping)).toBe('done');
   });
 
-  it('treats an option left out of both lists as todo once a mapping exists, ignoring keywords', () => {
+  it('treats an option left out of both lists as unknown (no alerts) once a mapping exists, ignoring keywords', () => {
     // "Done" would keyword-match, but explicit mapping mode doesn't fall back.
-    expect(resolveStatusCategory('s5', 'Done', mapping)).toBe('todo');
+    expect(resolveStatusCategory('s5', 'Done', mapping)).toBe('unknown');
   });
 
-  it('treats a null option id as todo when a mapping is configured', () => {
-    expect(resolveStatusCategory(null, null, mapping)).toBe('todo');
+  it('treats a null option id as unknown when a mapping is configured', () => {
+    expect(resolveStatusCategory(null, null, mapping)).toBe('unknown');
   });
 
   it('done takes priority when an id is (incorrectly) present in both lists', () => {

@@ -35,10 +35,14 @@ export function evaluate(input: EvaluateInput): EvaluationResult {
   const thresholds = input.ageThresholds ?? DEFAULT_AGE_THRESHOLDS;
   const isDone = input.status === 'done';
   const isInProgress = input.status === 'inProgress';
+  // 'unknown' means "we couldn't classify this" — whether because no keyword
+  // matched, or because it was left out of both lists in an explicit
+  // In Progress/Done status mapping. Either way, stay silent rather than guess.
+  const isNotDone = input.status === 'todo' || input.status === 'inProgress';
 
   return {
     start: evaluateStart(input, { isInProgress }, thresholds),
-    end: evaluateEnd(input, { isDone, isInProgress }),
+    end: evaluateEnd(input, { isDone, isInProgress, isNotDone }),
   };
 }
 
@@ -67,12 +71,12 @@ function evaluateStart(
 
 function evaluateEnd(
   input: EvaluateInput,
-  flags: { isDone: boolean; isInProgress: boolean },
+  flags: { isDone: boolean; isInProgress: boolean; isNotDone: boolean },
 ): CellAlert | null {
-  // 1. Overdue: not done and the end date is in the past. "Not done" is simply
-  // "anything except done" — Todo, Blocked, Review, or even an unrecognized
-  // status name all still deserve an overdue flag once their end date passes.
-  if (input.endDate && !flags.isDone) {
+  // 1. Overdue: recognized as todo/in-progress (not done) and the end date is
+  // in the past. Unclassified ('unknown') statuses stay silent rather than
+  // assume they're unfinished.
+  if (input.endDate && flags.isNotDone) {
     const overdue = diffInDays(input.today, input.endDate);
     if (overdue !== null && overdue > 0) {
       return { type: 'overdue', text: `Overdue ${overdue}d`, level: 'warning' };
