@@ -114,9 +114,12 @@ export default defineContentScript({
       const startCol = startName ? getColumnIndex(grid, startName) : -1;
       const endCol = endName ? getColumnIndex(grid, endName) : -1;
       const today = todayDateOnly();
+      // Pass ids through as-is (not defaulted to []) — resolveStatusCategory
+      // needs to tell "never configured" (undefined) apart from "configured
+      // with nothing selected" (defined, empty).
       const statusMapping: StatusMapping = {
-        inProgressStatusIds: mapping.inProgressStatusIds ?? [],
-        doneStatusIds: mapping.doneStatusIds ?? [],
+        inProgressStatusIds: mapping.inProgressStatusIds,
+        doneStatusIds: mapping.doneStatusIds,
       };
 
       for (const row of getDataRows(grid)) {

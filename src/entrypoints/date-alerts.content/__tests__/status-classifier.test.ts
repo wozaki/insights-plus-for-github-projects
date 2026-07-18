@@ -28,17 +28,31 @@ describe('classifyStatus', () => {
 });
 
 describe('resolveStatusCategory', () => {
-  const emptyMapping: StatusMapping = { inProgressStatusIds: [], doneStatusIds: [] };
+  // Never touched the status pickers at all — both fields undefined.
+  const neverConfigured: StatusMapping = {};
+  // Explicitly saved with nothing selected (e.g. via the Clear button + Save).
+  const configuredEmpty: StatusMapping = { inProgressStatusIds: [], doneStatusIds: [] };
   const mapping: StatusMapping = { inProgressStatusIds: ['s2', 's3'], doneStatusIds: ['s4'] };
 
-  it('falls back to keyword matching when no mapping is configured', () => {
-    expect(resolveStatusCategory('s2', 'In Progress', emptyMapping)).toBe('inProgress');
+  it('falls back to keyword matching when the mapping is null (feature not set up at all)', () => {
     expect(resolveStatusCategory('s2', 'In Progress', null)).toBe('inProgress');
+  });
+
+  it('falls back to keyword matching when the status pickers have never been touched', () => {
+    expect(resolveStatusCategory('s2', 'In Progress', neverConfigured)).toBe('inProgress');
   });
 
   it('falls back to keyword matching for an unrecognized name when unmapped', () => {
     // "Staging" doesn't match any keyword, so it stays unknown without a mapping.
-    expect(resolveStatusCategory('s9', 'Staging', emptyMapping)).toBe('unknown');
+    expect(resolveStatusCategory('s9', 'Staging', null)).toBe('unknown');
+  });
+
+  it('resolves everything to unknown (no alerts) once saved with nothing selected, ignoring keywords', () => {
+    // Regression: saving both pickers empty (via Clear) must not silently
+    // fall back to keyword matching — that would keep alerts appearing after
+    // the user deliberately turned status classification off.
+    expect(resolveStatusCategory('s2', 'In Progress', configuredEmpty)).toBe('unknown');
+    expect(resolveStatusCategory('s4', 'Done', configuredEmpty)).toBe('unknown');
   });
 
   it('uses the explicit mapping over the keyword guess once one is configured', () => {

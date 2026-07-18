@@ -39,24 +39,27 @@ function matches(normalized: string, keywords: string[]): boolean {
  * mapping (by option id) when the project has configured one.
  *
  * With ~10 Status options being common, requiring every option to be
- * classified is real setup cost, so the mapping is opt-in: a project with
- * nothing configured (both lists empty) falls back to keyword matching on
- * the option name, preserving today's zero-config default. But once *any*
- * mapping is configured, it takes full control — an option left out of both
- * lists resolves to 'unknown' (no alerts at all) rather than silently
- * falling back to a keyword guess, so leaving something unselected reads as
- * "don't alert on this" rather than an implicit "todo".
+ * classified is real setup cost, so the mapping is opt-in: a project that has
+ * never touched the pickers (both fields `undefined`) falls back to keyword
+ * matching on the option name, preserving today's zero-config default.
+ *
+ * But once the pickers have been saved at all — even saved with nothing
+ * selected via the Clear button — the mapping takes full control: an option
+ * not found in either list resolves to 'unknown' (no alerts), rather than
+ * silently falling back to a keyword guess. Saving "nothing selected" is a
+ * deliberate "don't classify by status" choice, not the same as never having
+ * configured it, so it must not quietly re-enable keyword matching.
  */
 export function resolveStatusCategory(
   optionId: string | null,
   optionName: string | null,
   mapping: StatusMapping | null,
 ): StatusCategory {
-  const hasExplicitMapping = !!mapping && (mapping.doneStatusIds.length > 0 || mapping.inProgressStatusIds.length > 0);
+  const isConfigured = mapping !== null && (mapping.inProgressStatusIds !== undefined || mapping.doneStatusIds !== undefined);
 
-  if (hasExplicitMapping) {
-    if (optionId && mapping.doneStatusIds.includes(optionId)) return 'done';
-    if (optionId && mapping.inProgressStatusIds.includes(optionId)) return 'inProgress';
+  if (isConfigured && mapping !== null) {
+    if (optionId && mapping.doneStatusIds?.includes(optionId)) return 'done';
+    if (optionId && mapping.inProgressStatusIds?.includes(optionId)) return 'inProgress';
     return 'unknown';
   }
 

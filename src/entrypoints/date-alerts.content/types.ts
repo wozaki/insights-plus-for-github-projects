@@ -20,10 +20,15 @@ export interface DateFieldMapping {
   doneStatusIds?: string[];
 }
 
-/** Explicit Status option -> category mapping, as used at evaluation time. */
+/**
+ * Explicit Status option -> category mapping, as used at evaluation time.
+ * Fields are optional (rather than defaulted to `[]`) so evaluation can tell
+ * "never configured" (undefined — fall back to keyword matching) apart from
+ * "configured with nothing selected" (defined, empty — classify nothing).
+ */
 export interface StatusMapping {
-  inProgressStatusIds: string[];
-  doneStatusIds: string[];
+  inProgressStatusIds?: string[];
+  doneStatusIds?: string[];
 }
 
 /** Normalized status category derived from the Status field. */
