@@ -124,6 +124,44 @@ describe('parseNodes / extractItems', () => {
     expect(items.get(3924644068)?.endDate).toBeNull();
     expect(items.get(3924644068)?.statusName).toBe('In Progress');
   });
+
+  it('flattens items nested under groupedItems[].nodes when the view has "Group by" set', () => {
+    // Real shape observed on a view with Group by: Assignees — items split per group,
+    // with a separate `groups` object describing the groups themselves (not items).
+    const grouped = JSON.stringify({
+      totalCount: { value: 2, isApproximate: false },
+      groups: { nodes: [{ groupValue: 'alice', groupId: 'g1' }, { groupValue: null, groupId: 'g2' }] },
+      groupedItems: [
+        {
+          groupId: 'g1',
+          nodes: [
+            {
+              contentId: 3924644068,
+              memexProjectColumnValues: [
+                { memexProjectColumnId: 369979541, value: { value: '2026-07-17T00:00:00+00:00' } },
+              ],
+            },
+          ],
+        },
+        {
+          groupId: 'g2',
+          nodes: [{ contentId: 3924661090, memexProjectColumnValues: [] }],
+        },
+      ],
+    });
+
+    const nodes = parseNodes(grouped);
+    expect(nodes).toHaveLength(2);
+    expect(nodes.map((n) => n.contentId).sort()).toEqual([3924644068, 3924661090]);
+
+    const options = getStatusOptions(parseColumns(COLUMNS));
+    const items = extractItems(nodes, '369979541', null, options);
+    expect(items.get(3924644068)?.startDate).toBe('2026-07-17');
+  });
+
+  it('returns an empty list for an unrecognized items shape', () => {
+    expect(parseNodes(JSON.stringify({ somethingElse: true }))).toEqual([]);
+  });
 });
 
 describe('readMemexData', () => {

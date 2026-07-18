@@ -5,7 +5,10 @@
 //
 // Data source contract (see the "list view memex" reference):
 // - #memex-columns-data: field definitions [{id, name, dataType, settings.options}]
-// - #memex-paginated-items-data: {nodes:[{contentId, memexProjectColumnValues}]}
+// - #memex-paginated-items-data: {nodes:[{contentId, memexProjectColumnValues}]} when
+//   the view has no grouping, or {groupedItems:[{groupId, nodes:[...]}]} when the view
+//   groups by a field (e.g. "Group by: Assignees") — item nodes are then split across
+//   each group's own `nodes` array instead of one flat top-level array.
 //
 // Limitation: this JSON is a load-time snapshot of the first page of items.
 // Edits are reflected only after a reload, and items beyond the first page are
@@ -55,11 +58,21 @@ export function parseColumns(json: string): MemexColumn[] {
   return Array.isArray(parsed) ? (parsed as MemexColumn[]) : [];
 }
 
-/** Parse the items JSON string into raw nodes. */
+/** Parse the items JSON string into a flat list of raw nodes, regardless of grouping. */
 export function parseNodes(json: string): MemexNode[] {
   const parsed = JSON.parse(json);
-  const nodes = Array.isArray(parsed) ? parsed : parsed?.nodes;
-  return Array.isArray(nodes) ? (nodes as MemexNode[]) : [];
+
+  if (Array.isArray(parsed)) return parsed as MemexNode[];
+  if (Array.isArray(parsed?.nodes)) return parsed.nodes as MemexNode[];
+
+  // Grouped view: items live under groupedItems[].nodes, one bucket per group.
+  if (Array.isArray(parsed?.groupedItems)) {
+    return (parsed.groupedItems as Array<{ nodes?: unknown }>).flatMap((group) =>
+      Array.isArray(group?.nodes) ? (group.nodes as MemexNode[]) : [],
+    );
+  }
+
+  return [];
 }
 
 /** Extract date-valued fields (custom Date fields plus Created/Updated/Closed) as selectable options. */
