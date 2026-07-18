@@ -171,6 +171,31 @@ describe('createConfigView', () => {
       expect(selectedValues(doneSelect).sort()).toEqual(['s3', 's4']);
     });
 
+    it('keeps an intentionally empty saved status mapping empty, instead of re-showing the guess', () => {
+      // Regression: reopening after saving with nothing selected must not
+      // silently re-apply the keyword guess — that would misrepresent what's
+      // actually saved (both empty = pure keyword mode) as if something had
+      // been explicitly picked.
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: {
+          startFieldId: '1',
+          endFieldId: '2',
+          inProgressStatusIds: [],
+          doneStatusIds: [],
+        },
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave: vi.fn(),
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      const [inProgressSelect, doneSelect] = multiSelects(view);
+      expect(selectedValues(inProgressSelect)).toEqual([]);
+      expect(selectedValues(doneSelect)).toEqual([]);
+    });
+
     it('includes the chosen status ids when saving', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
       const view = createConfigView({

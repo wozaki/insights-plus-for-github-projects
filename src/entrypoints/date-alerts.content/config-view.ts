@@ -93,14 +93,17 @@ export function createConfigView(options: ConfigViewOptions): HTMLElement {
     startSelect.select.value = preset.start && fieldsById.has(preset.start) ? preset.start : '';
     endSelect.select.value = preset.end && fieldsById.has(preset.end) ? preset.end : '';
 
-    const savedInProgress = mapping?.inProgressStatusIds ?? [];
-    const savedDone = mapping?.doneStatusIds ?? [];
-    if (savedInProgress.length > 0 || savedDone.length > 0) {
-      setSelectedValues(inProgressStatusSelect.select, savedInProgress);
-      setSelectedValues(doneStatusSelect.select, savedDone);
+    // Distinguish "never saved a status mapping" (undefined — show a guess to
+    // start from) from "saved with nothing selected" (defined, possibly empty
+    // — show it as-is). Checking array length alone can't tell these apart,
+    // since an intentional empty save and "never touched" both have length 0.
+    const statusMappingSaved = mapping?.inProgressStatusIds !== undefined || mapping?.doneStatusIds !== undefined;
+    if (statusMappingSaved) {
+      setSelectedValues(inProgressStatusSelect.select, mapping?.inProgressStatusIds ?? []);
+      setSelectedValues(doneStatusSelect.select, mapping?.doneStatusIds ?? []);
     } else {
-      // Nothing saved yet: pre-select using the same keyword guess the
-      // extension falls back to, as a starting point to fine-tune.
+      // Never touched: pre-select using the same keyword guess the extension
+      // falls back to, as a starting point to fine-tune.
       setSelectedValues(
         inProgressStatusSelect.select,
         statusOptions.filter((o) => classifyStatus(o.name) === 'inProgress').map((o) => o.id),
