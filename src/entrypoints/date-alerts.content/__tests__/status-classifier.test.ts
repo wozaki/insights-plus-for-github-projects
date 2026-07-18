@@ -6,12 +6,12 @@ describe('classifyStatus', () => {
     expect(classifyStatus(name)).toBe('done');
   });
 
-  it.each(['In Progress', 'In development', 'Doing', '開発中', '対応中', '作業中'])(
-    'classifies "%s" as inProgress',
-    (name) => {
-      expect(classifyStatus(name)).toBe('inProgress');
-    },
-  );
+  it.each([
+    'In Progress', 'In development', 'Doing', '開発中', '対応中', '作業中',
+    'In Review', 'Review', 'Reviewing', 'Code Review', 'レビュー中',
+  ])('classifies "%s" as inProgress', (name) => {
+    expect(classifyStatus(name)).toBe('inProgress');
+  });
 
   it.each(['Todo', 'To do', 'Backlog', '未着手', '予定'])('classifies "%s" as todo', (name) => {
     expect(classifyStatus(name)).toBe('todo');

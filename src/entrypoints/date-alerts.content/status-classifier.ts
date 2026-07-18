@@ -6,7 +6,12 @@
 import type { StatusCategory } from './types';
 
 const DONE_KEYWORDS = ['done', 'closed', 'complete', 'completed', 'shipped', 'resolved', '完了', '済', 'クローズ'];
-const IN_PROGRESS_KEYWORDS = ['in progress', 'in development', 'doing', 'progress', 'wip', '開発中', '対応中', '進行', '作業中'];
+// Review-ish statuses (work has started and isn't merged/closed yet) count as
+// in progress, since Age/Overdue tracking cares about "started, not done" either way.
+const IN_PROGRESS_KEYWORDS = [
+  'in progress', 'in development', 'doing', 'progress', 'wip', '開発中', '対応中', '進行', '作業中',
+  'review', 'reviewing', 'in review', 'code review', 'レビュー',
+];
 const TODO_KEYWORDS = ['todo', 'to do', 'backlog', 'planned', 'ready', '未着手', '未対応', '未開始', '予定'];
 
 /**
