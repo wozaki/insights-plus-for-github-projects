@@ -46,6 +46,8 @@ export interface MemexData {
   dateFields: DateFieldOption[];
   /** Status option id -> option name. */
   statusOptions: Map<string, string>;
+  /** Status options in their configured display order, for building a picker UI. */
+  statusOptionList: DateFieldOption[];
   /** contentId -> resolved values for the configured start/end/status fields. */
   itemsByContentId: Map<number, ItemFieldData>;
   /** Raw columns, exposed for callers that need field names by id. */
@@ -82,16 +84,20 @@ export function getDateFields(columns: MemexColumn[]): DateFieldOption[] {
     .map((column) => ({ id: String(column.id), name: column.name }));
 }
 
-/** Build an option-id -> name map from the Status (singleSelect) column. */
-export function getStatusOptions(columns: MemexColumn[]): Map<string, string> {
-  const map = new Map<string, string>();
+/** Status options in their configured display order. */
+export function getStatusOptionList(columns: MemexColumn[]): DateFieldOption[] {
   const statusColumn = columns.find(
     (column) => column.id === 'Status' || column.dataType === 'singleSelect',
   );
-  for (const option of statusColumn?.settings?.options ?? []) {
-    map.set(String(option.id), option.name);
-  }
-  return map;
+  return (statusColumn?.settings?.options ?? []).map((option) => ({
+    id: String(option.id),
+    name: option.name,
+  }));
+}
+
+/** Build an option-id -> name map from the Status (singleSelect) column. */
+export function getStatusOptions(columns: MemexColumn[]): Map<string, string> {
+  return new Map(getStatusOptionList(columns).map((option) => [option.id, option.name]));
 }
 
 /**
@@ -108,11 +114,13 @@ export function extractItems(
 
   for (const node of nodes) {
     const values = node.memexProjectColumnValues ?? [];
+    const status = readStatus(values, statusOptions);
     result.set(node.contentId, {
       contentId: node.contentId,
       startDate: startFieldId ? readDate(values, startFieldId) : null,
       endDate: endFieldId ? readDate(values, endFieldId) : null,
-      statusName: readStatusName(values, statusOptions),
+      statusId: status.id,
+      statusName: status.name,
     });
   }
 
@@ -130,10 +138,14 @@ function readDate(values: MemexColumnValue[], fieldId: string): string | null {
   return toDateOnly(value.value);
 }
 
-function readStatusName(values: MemexColumnValue[], statusOptions: Map<string, string>): string | null {
+function readStatus(
+  values: MemexColumnValue[],
+  statusOptions: Map<string, string>,
+): { id: string | null; name: string | null } {
   const value = findValue(values, 'Status') as { id?: string } | null | undefined;
-  if (!value || value.id == null) return null;
-  return statusOptions.get(String(value.id)) ?? null;
+  if (!value || value.id == null) return { id: null, name: null };
+  const id = String(value.id);
+  return { id, name: statusOptions.get(id) ?? null };
 }
 
 /** Read the embedded JSON from the document. Returns null if not present. */
@@ -166,6 +178,7 @@ export function readMemexData(
   return {
     dateFields: getDateFields(columns),
     statusOptions,
+    statusOptionList: getStatusOptionList(columns),
     itemsByContentId,
     columns,
   };

@@ -121,19 +121,21 @@ Configure your chart with the following settings:
 2. A settings bar appears at the top of the list. Click **Configure**, map your **Start** and **End** date fields (likely matches are pre-selected from your Date fields), and click **Save**
 3. Alerts appear inline next to the dates in the Start/End columns, and update as you scroll
 
+By default, whether an item counts as "in progress" or "done" is guessed from its Status option name (e.g. "In Progress", "Review", "Done"). If your Status column uses different wording, or has enough options (~10) that guessing gets unreliable, open **Configure** and set the optional **In Progress statuses** / **Done statuses** pickers — both are pre-filled with the current guess, so you only need to adjust what's wrong. Leaving both empty keeps the automatic guess.
+
 #### Alert rules
 
 | Status | Condition | Shown |
 |--------|-----------|-------|
 | In Progress | No start date | Start: `⚠ Missing` |
 | In Progress | Has a past start date | Start: `Age Nd` (color-coded: 0–5 normal, 6–10 caution, 11+ warning) |
-| Not done | End date is in the past | End: `Overdue Nd` |
+| Not done (anything but Done) | End date is in the past | End: `Overdue Nd` |
 | In Progress | No end date | End: `⚠ Missing` |
 | Done | No end date | End: `⚠ Missing` |
 
 Notes:
 
-- The Start/End field mapping is stored per project (via `chrome.storage.local`), so field renames don't break it (field IDs are used internally).
+- The Start/End field mapping (and the optional status pickers) are stored per project (via `chrome.storage.local`), so field renames don't break it (field/status IDs are used internally).
 - Alerts are computed from the items loaded on the page and refresh on reload; edits made after load are reflected after refreshing.
 
 ## Development

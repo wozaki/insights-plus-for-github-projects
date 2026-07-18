@@ -4,6 +4,7 @@
 // the user; field ids are used internally. Vanilla DOM, namespaced classes.
 
 import type { DateFieldMapping, DateFieldOption } from './types';
+import { classifyStatus } from './status-classifier';
 
 export const CONFIG_VIEW_CLASS = 'iplus-date-config';
 
@@ -12,12 +13,14 @@ export interface ConfigViewOptions {
   currentMapping: DateFieldMapping | null;
   /** Auto-guessed defaults used to pre-select the dropdowns on first configure. */
   guessedMapping: { startFieldId: string | null; endFieldId: string | null };
+  /** All Status options, for the optional In Progress/Done status pickers. */
+  statusOptions: DateFieldOption[];
   onSave: (mapping: DateFieldMapping) => void | Promise<void>;
 }
 
 /** Build the config view element. Caller mounts it above the grid. */
 export function createConfigView(options: ConfigViewOptions): HTMLElement {
-  const { dateFields, currentMapping, guessedMapping, onSave } = options;
+  const { dateFields, currentMapping, guessedMapping, statusOptions, onSave } = options;
   const fieldsById = new Map(dateFields.map((f) => [f.id, f.name]));
 
   const container = document.createElement('div');
@@ -43,6 +46,8 @@ export function createConfigView(options: ConfigViewOptions): HTMLElement {
 
   const startSelect = buildSelect('Start date field', dateFields);
   const endSelect = buildSelect('End date field', dateFields);
+  const inProgressStatusSelect = buildMultiSelect('In Progress statuses (optional)', statusOptions);
+  const doneStatusSelect = buildMultiSelect('Done statuses (optional)', statusOptions);
 
   const actions = document.createElement('div');
   actions.className = `${CONFIG_VIEW_CLASS}__actions`;
@@ -61,7 +66,13 @@ export function createConfigView(options: ConfigViewOptions): HTMLElement {
   error.className = `${CONFIG_VIEW_CLASS}__error`;
 
   actions.append(saveButton, cancelButton, error);
-  panel.append(startSelect.wrapper, endSelect.wrapper, actions);
+  panel.append(
+    startSelect.wrapper,
+    endSelect.wrapper,
+    inProgressStatusSelect.wrapper,
+    doneStatusSelect.wrapper,
+    actions,
+  );
 
   container.append(bar, panel);
 
@@ -81,6 +92,25 @@ export function createConfigView(options: ConfigViewOptions): HTMLElement {
       : { start: guessedMapping.startFieldId, end: guessedMapping.endFieldId };
     startSelect.select.value = preset.start && fieldsById.has(preset.start) ? preset.start : '';
     endSelect.select.value = preset.end && fieldsById.has(preset.end) ? preset.end : '';
+
+    const savedInProgress = mapping?.inProgressStatusIds ?? [];
+    const savedDone = mapping?.doneStatusIds ?? [];
+    if (savedInProgress.length > 0 || savedDone.length > 0) {
+      setSelectedValues(inProgressStatusSelect.select, savedInProgress);
+      setSelectedValues(doneStatusSelect.select, savedDone);
+    } else {
+      // Nothing saved yet: pre-select using the same keyword guess the
+      // extension falls back to, as a starting point to fine-tune.
+      setSelectedValues(
+        inProgressStatusSelect.select,
+        statusOptions.filter((o) => classifyStatus(o.name) === 'inProgress').map((o) => o.id),
+      );
+      setSelectedValues(
+        doneStatusSelect.select,
+        statusOptions.filter((o) => classifyStatus(o.name) === 'done').map((o) => o.id),
+      );
+    }
+
     error.textContent = '';
   }
 
@@ -111,9 +141,15 @@ export function createConfigView(options: ConfigViewOptions): HTMLElement {
       error.textContent = 'Start and end must be different fields.';
       return;
     }
+    const next: DateFieldMapping = {
+      startFieldId,
+      endFieldId,
+      inProgressStatusIds: getSelectedValues(inProgressStatusSelect.select),
+      doneStatusIds: getSelectedValues(doneStatusSelect.select),
+    };
     try {
-      await onSave({ startFieldId, endFieldId });
-      mapping = { startFieldId, endFieldId };
+      await onSave(next);
+      mapping = next;
       renderSummary();
       closePanel();
     } catch {
@@ -155,6 +191,41 @@ function buildSelect(label: string, fields: DateFieldOption[]): BuiltSelect {
 
   wrapper.append(caption, select);
   return { wrapper, select };
+}
+
+function buildMultiSelect(label: string, options: DateFieldOption[]): BuiltSelect {
+  const wrapper = document.createElement('label');
+  wrapper.className = `${CONFIG_VIEW_CLASS}__field`;
+
+  const caption = document.createElement('span');
+  caption.className = `${CONFIG_VIEW_CLASS}__label`;
+  caption.textContent = label;
+
+  const select = document.createElement('select');
+  select.className = `${CONFIG_VIEW_CLASS}__select ${CONFIG_VIEW_CLASS}__select--multi`;
+  select.multiple = true;
+  select.size = Math.min(Math.max(options.length, 2), 6);
+
+  for (const option of options) {
+    const el = document.createElement('option');
+    el.value = option.id;
+    el.textContent = option.name;
+    select.appendChild(el);
+  }
+
+  wrapper.append(caption, select);
+  return { wrapper, select };
+}
+
+function getSelectedValues(select: HTMLSelectElement): string[] {
+  return Array.from(select.selectedOptions).map((option) => option.value);
+}
+
+function setSelectedValues(select: HTMLSelectElement, values: string[]): void {
+  const set = new Set(values);
+  for (const option of Array.from(select.options)) {
+    option.selected = set.has(option.value);
+  }
 }
 
 interface MappingState {

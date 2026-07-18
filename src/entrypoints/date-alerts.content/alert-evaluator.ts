@@ -35,12 +35,10 @@ export function evaluate(input: EvaluateInput): EvaluationResult {
   const thresholds = input.ageThresholds ?? DEFAULT_AGE_THRESHOLDS;
   const isDone = input.status === 'done';
   const isInProgress = input.status === 'inProgress';
-  // "Not done" only counts recognized non-done statuses; unknown statuses stay silent.
-  const isNotDone = input.status === 'inProgress' || input.status === 'todo';
 
   return {
     start: evaluateStart(input, { isInProgress }, thresholds),
-    end: evaluateEnd(input, { isDone, isInProgress, isNotDone }),
+    end: evaluateEnd(input, { isDone, isInProgress }),
   };
 }
 
@@ -69,10 +67,12 @@ function evaluateStart(
 
 function evaluateEnd(
   input: EvaluateInput,
-  flags: { isDone: boolean; isInProgress: boolean; isNotDone: boolean },
+  flags: { isDone: boolean; isInProgress: boolean },
 ): CellAlert | null {
-  // 1. Overdue: not done and the end date is in the past.
-  if (input.endDate && flags.isNotDone) {
+  // 1. Overdue: not done and the end date is in the past. "Not done" is simply
+  // "anything except done" — Todo, Blocked, Review, or even an unrecognized
+  // status name all still deserve an overdue flag once their end date passes.
+  if (input.endDate && !flags.isDone) {
     const overdue = diffInDays(input.today, input.endDate);
     if (overdue !== null && overdue > 0) {
       return { type: 'overdue', text: `Overdue ${overdue}d`, level: 'warning' };

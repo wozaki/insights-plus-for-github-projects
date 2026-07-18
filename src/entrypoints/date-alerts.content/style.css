@@ -111,6 +111,11 @@
   color: var(--fgColor-default, #1f2328);
 }
 
+.iplus-date-config__select--multi {
+  min-width: 180px;
+  align-self: flex-start;
+}
+
 .iplus-date-config__actions {
   display: flex;
   align-items: center;

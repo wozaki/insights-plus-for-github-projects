@@ -8,6 +8,29 @@ const fields: DateFieldOption[] = [
 ];
 const fieldsById = new Map(fields.map((f) => [f.id, f.name]));
 
+const statusOptions: DateFieldOption[] = [
+  { id: 's1', name: 'Todo' },
+  { id: 's2', name: 'In Progress' },
+  { id: 's3', name: 'Review' },
+  { id: 's4', name: 'Done' },
+];
+
+function dateSelects(view: HTMLElement): HTMLSelectElement[] {
+  return Array.from(
+    view.querySelectorAll<HTMLSelectElement>(
+      `.${CONFIG_VIEW_CLASS}__select:not(.${CONFIG_VIEW_CLASS}__select--multi)`,
+    ),
+  );
+}
+
+function multiSelects(view: HTMLElement): HTMLSelectElement[] {
+  return Array.from(view.querySelectorAll<HTMLSelectElement>(`.${CONFIG_VIEW_CLASS}__select--multi`));
+}
+
+function selectedValues(select: HTMLSelectElement): string[] {
+  return Array.from(select.selectedOptions).map((o) => o.value);
+}
+
 describe('mappingState', () => {
   it('is unset when no mapping', () => {
     expect(mappingState(null, fieldsById)).toMatchObject({ kind: 'unset', buttonLabel: 'Configure' });
@@ -31,7 +54,13 @@ describe('createConfigView', () => {
   });
 
   it('renders the unset summary and opens the panel on click', () => {
-    const view = createConfigView({ dateFields: fields, currentMapping: null, guessedMapping: { startFieldId: null, endFieldId: null }, onSave: vi.fn() });
+    const view = createConfigView({
+      dateFields: fields,
+      currentMapping: null,
+      guessedMapping: { startFieldId: null, endFieldId: null },
+      statusOptions: [],
+      onSave: vi.fn(),
+    });
     document.body.appendChild(view);
 
     expect(view.querySelector(`.${CONFIG_VIEW_CLASS}__summary`)?.textContent).toBe('Date fields are not configured');
@@ -43,18 +72,30 @@ describe('createConfigView', () => {
   });
 
   it('pre-selects guessed fields when unconfigured', () => {
-    const view = createConfigView({ dateFields: fields, currentMapping: null, guessedMapping: { startFieldId: '1', endFieldId: '2' }, onSave: vi.fn() });
+    const view = createConfigView({
+      dateFields: fields,
+      currentMapping: null,
+      guessedMapping: { startFieldId: '1', endFieldId: '2' },
+      statusOptions: [],
+      onSave: vi.fn(),
+    });
     document.body.appendChild(view);
     view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
 
-    const selects = view.querySelectorAll<HTMLSelectElement>(`.${CONFIG_VIEW_CLASS}__select`);
+    const selects = dateSelects(view);
     expect(selects[0].value).toBe('1');
     expect(selects[1].value).toBe('2');
   });
 
   it('saves a valid selection and updates the summary', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    const view = createConfigView({ dateFields: fields, currentMapping: null, guessedMapping: { startFieldId: '1', endFieldId: '2' }, onSave });
+    const view = createConfigView({
+      dateFields: fields,
+      currentMapping: null,
+      guessedMapping: { startFieldId: '1', endFieldId: '2' },
+      statusOptions: [],
+      onSave,
+    });
     document.body.appendChild(view);
     view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
 
@@ -62,22 +103,101 @@ describe('createConfigView', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(onSave).toHaveBeenCalledWith({ startFieldId: '1', endFieldId: '2' });
+    expect(onSave).toHaveBeenCalledWith({
+      startFieldId: '1',
+      endFieldId: '2',
+      inProgressStatusIds: [],
+      doneStatusIds: [],
+    });
     expect(view.querySelector(`.${CONFIG_VIEW_CLASS}__summary`)?.textContent).toBe('Date fields: Start on / End on');
   });
 
   it('rejects saving the same field for both roles', () => {
     const onSave = vi.fn();
-    const view = createConfigView({ dateFields: fields, currentMapping: null, guessedMapping: { startFieldId: null, endFieldId: null }, onSave });
+    const view = createConfigView({
+      dateFields: fields,
+      currentMapping: null,
+      guessedMapping: { startFieldId: null, endFieldId: null },
+      statusOptions: [],
+      onSave,
+    });
     document.body.appendChild(view);
     view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
 
-    const selects = view.querySelectorAll<HTMLSelectElement>(`.${CONFIG_VIEW_CLASS}__select`);
+    const selects = dateSelects(view);
     selects[0].value = '1';
     selects[1].value = '1';
     view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__save`)!.click();
 
     expect(onSave).not.toHaveBeenCalled();
     expect(view.querySelector(`.${CONFIG_VIEW_CLASS}__error`)?.textContent).toContain('different');
+  });
+
+  describe('status pickers', () => {
+    it('pre-selects In Progress/Done statuses by keyword guess when nothing is saved', () => {
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: null,
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave: vi.fn(),
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      const [inProgressSelect, doneSelect] = multiSelects(view);
+      expect(selectedValues(inProgressSelect).sort()).toEqual(['s2', 's3']); // In Progress, Review
+      expect(selectedValues(doneSelect)).toEqual(['s4']); // Done
+    });
+
+    it('uses the saved status mapping instead of the keyword guess when present', () => {
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: {
+          startFieldId: '1',
+          endFieldId: '2',
+          inProgressStatusIds: ['s2'],
+          doneStatusIds: ['s3', 's4'],
+        },
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave: vi.fn(),
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      const [inProgressSelect, doneSelect] = multiSelects(view);
+      expect(selectedValues(inProgressSelect)).toEqual(['s2']);
+      expect(selectedValues(doneSelect).sort()).toEqual(['s3', 's4']);
+    });
+
+    it('includes the chosen status ids when saving', async () => {
+      const onSave = vi.fn().mockResolvedValue(undefined);
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: null,
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave,
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      const [inProgressSelect, doneSelect] = multiSelects(view);
+      // Replace the guessed selection with a manual one.
+      Array.from(inProgressSelect.options).forEach((o) => (o.selected = o.value === 's3'));
+      Array.from(doneSelect.options).forEach((o) => (o.selected = o.value === 's4'));
+
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__save`)!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(onSave).toHaveBeenCalledWith({
+        startFieldId: '1',
+        endFieldId: '2',
+        inProgressStatusIds: ['s3'],
+        doneStatusIds: ['s4'],
+      });
+    });
   });
 });

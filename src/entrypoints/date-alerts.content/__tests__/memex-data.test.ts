@@ -4,6 +4,7 @@ import {
   parseNodes,
   getDateFields,
   getStatusOptions,
+  getStatusOptionList,
   extractItems,
   readMemexData,
 } from '../memex-data';
@@ -80,6 +81,20 @@ describe('getStatusOptions', () => {
   });
 });
 
+describe('getStatusOptionList', () => {
+  it('returns status options in their configured order', () => {
+    expect(getStatusOptionList(parseColumns(COLUMNS))).toEqual([
+      { id: 'f75ad846', name: 'Todo' },
+      { id: '47fc9ee4', name: 'In Progress' },
+      { id: '98236657', name: 'Done' },
+    ]);
+  });
+
+  it('returns an empty array when there is no Status column', () => {
+    expect(getStatusOptionList(parseColumns(JSON.stringify([{ id: 'Title', name: 'Title', dataType: 'title' }])))).toEqual([]);
+  });
+});
+
 describe('parseNodes / extractItems', () => {
   it('resolves start/end dates and status names by contentId', () => {
     const options = getStatusOptions(parseColumns(COLUMNS));
@@ -89,12 +104,14 @@ describe('parseNodes / extractItems', () => {
       contentId: 3924644068,
       startDate: '2026-07-17',
       endDate: '2026-07-18',
+      statusId: '47fc9ee4',
       statusName: 'In Progress',
     });
     expect(items.get(3924661090)).toEqual({
       contentId: 3924661090,
       startDate: null,
       endDate: null,
+      statusId: '98236657',
       statusName: 'Done',
     });
   });

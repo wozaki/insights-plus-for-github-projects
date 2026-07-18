@@ -27,7 +27,12 @@ export async function setMapping(projectKey: string, mapping: DateFieldMapping):
   try {
     const result = await chrome.storage.local.get(DATE_FIELD_MAPPING_STORAGE_KEY);
     const store = (result[DATE_FIELD_MAPPING_STORAGE_KEY] ?? {}) as MappingStore;
-    store[projectKey] = { startFieldId: mapping.startFieldId, endFieldId: mapping.endFieldId };
+    store[projectKey] = {
+      startFieldId: mapping.startFieldId,
+      endFieldId: mapping.endFieldId,
+      inProgressStatusIds: mapping.inProgressStatusIds ?? [],
+      doneStatusIds: mapping.doneStatusIds ?? [],
+    };
     await chrome.storage.local.set({ [DATE_FIELD_MAPPING_STORAGE_KEY]: store });
   } catch (error) {
     console.error('[Date Field Alerts] Failed to save mapping:', error);

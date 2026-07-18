@@ -84,6 +84,11 @@ describe('evaluate - End cell', () => {
     expect(result.end).toEqual({ type: 'overdue', text: 'Overdue 3d', level: 'warning' });
   });
 
+  it('flags Overdue even for an unrecognized status, since "not done" means anything but done', () => {
+    const result = run({ status: 'unknown', endDate: '2026-07-15' });
+    expect(result.end).toEqual({ type: 'overdue', text: 'Overdue 3d', level: 'warning' });
+  });
+
   it('flags Missing End when done without an end date', () => {
     const result = run({ status: 'done', endDate: null, startDate: '2026-07-01' });
     expect(result.end).toEqual({ type: 'missingEnd', text: '⚠ Missing', level: 'caution' });

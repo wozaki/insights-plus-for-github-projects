@@ -9,7 +9,7 @@ import { PROJECT_URL_PATTERNS, isProjectPage, projectKey } from './list-view-url
 import { readMemexData } from './memex-data';
 import { getMapping, setMapping, isMappingChange, isValidMapping } from './field-config';
 import { guessMapping } from './field-guesser';
-import { classifyStatus } from './status-classifier';
+import { resolveStatusCategory } from './status-classifier';
 import { evaluateItem } from './alert-evaluator';
 import { todayDateOnly } from './date-utils';
 import { createConfigView, CONFIG_VIEW_CLASS } from './config-view';
@@ -22,7 +22,7 @@ import {
   getCellAt,
   filterFieldsVisibleAsColumns,
 } from './table-scraper';
-import type { DateFieldMapping, DateFieldOption } from './types';
+import type { DateFieldMapping, DateFieldOption, StatusMapping } from './types';
 import './style.css';
 
 const LOG_PREFIX = '[Date Field Alerts]';
@@ -75,7 +75,7 @@ export default defineContentScript({
       // exist on the project without being added here, and picking one would
       // save but never find a cell to annotate.
       const dateFields = filterFieldsVisibleAsColumns(grid, metaOnly.dateFields);
-      mountConfigView(grid, key, dateFields, mapping);
+      mountConfigView(grid, key, dateFields, metaOnly.statusOptionList, mapping);
 
       if (isValidMapping(mapping)) {
         renderAlerts(grid, mapping);
@@ -89,12 +89,14 @@ export default defineContentScript({
       grid: HTMLElement,
       key: string,
       dateFields: DateFieldOption[],
+      statusOptions: DateFieldOption[],
       mapping: DateFieldMapping | null,
     ): void {
       const view = createConfigView({
         dateFields,
         currentMapping: mapping,
         guessedMapping: guessMapping(dateFields),
+        statusOptions,
         onSave: (next) => setMapping(key, next),
       });
 
@@ -112,12 +114,16 @@ export default defineContentScript({
       const startCol = startName ? getColumnIndex(grid, startName) : -1;
       const endCol = endName ? getColumnIndex(grid, endName) : -1;
       const today = todayDateOnly();
+      const statusMapping: StatusMapping = {
+        inProgressStatusIds: mapping.inProgressStatusIds ?? [],
+        doneStatusIds: mapping.doneStatusIds ?? [],
+      };
 
       for (const row of getDataRows(grid)) {
         const contentId = getRowContentId(row);
         const item = contentId != null ? data.itemsByContentId.get(contentId) : undefined;
         const result = item
-          ? evaluateItem(item, classifyStatus(item.statusName), today)
+          ? evaluateItem(item, resolveStatusCategory(item.statusId, item.statusName, statusMapping), today)
           : { start: null, end: null };
 
         if (startCol >= 0) {

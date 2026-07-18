@@ -3,7 +3,7 @@
 // Keyword based and case-insensitive; unrecognized names return 'unknown'
 // so that status-dependent alerts stay silent rather than guess.
 
-import type { StatusCategory } from './types';
+import type { StatusCategory, StatusMapping } from './types';
 
 const DONE_KEYWORDS = ['done', 'closed', 'complete', 'completed', 'shipped', 'resolved', '完了', '済', 'クローズ'];
 // Review-ish statuses (work has started and isn't merged/closed yet) count as
@@ -32,4 +32,33 @@ export function classifyStatus(name: string | null | undefined): StatusCategory 
 
 function matches(normalized: string, keywords: string[]): boolean {
   return keywords.some((keyword) => normalized.includes(keyword));
+}
+
+/**
+ * Resolve a Status option to a category, preferring an explicit per-project
+ * mapping (by option id) when the project has configured one.
+ *
+ * With ~10 Status options being common, requiring every option to be
+ * classified is real setup cost, so the mapping is opt-in: a project with
+ * nothing configured (both lists empty) falls back to keyword matching on
+ * the option name, preserving today's zero-config default. But once *any*
+ * mapping is configured, it takes full control — an option left out of both
+ * lists resolves to 'todo' rather than silently falling back to a keyword
+ * guess, so the user isn't second-guessed by hidden matching after they've
+ * explicitly curated the list.
+ */
+export function resolveStatusCategory(
+  optionId: string | null,
+  optionName: string | null,
+  mapping: StatusMapping | null,
+): StatusCategory {
+  const hasExplicitMapping = !!mapping && (mapping.doneStatusIds.length > 0 || mapping.inProgressStatusIds.length > 0);
+
+  if (hasExplicitMapping) {
+    if (optionId && mapping.doneStatusIds.includes(optionId)) return 'done';
+    if (optionId && mapping.inProgressStatusIds.includes(optionId)) return 'inProgress';
+    return 'todo';
+  }
+
+  return classifyStatus(optionName);
 }

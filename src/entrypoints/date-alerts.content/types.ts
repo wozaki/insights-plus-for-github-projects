@@ -7,13 +7,26 @@ export interface DateFieldOption {
   name: string;
 }
 
-/** Per-project mapping of which field is Start and which is End. */
+/**
+ * Per-project mapping of which field is Start/End, and (optionally) which
+ * Status options count as "in progress" / "done". The status id lists are
+ * opt-in: when both are empty/unset, status is classified by keyword
+ * matching on the option name instead (see status-classifier.ts).
+ */
 export interface DateFieldMapping {
   startFieldId: string;
   endFieldId: string;
+  inProgressStatusIds?: string[];
+  doneStatusIds?: string[];
 }
 
-/** Normalized status category derived from the Status field name. */
+/** Explicit Status option -> category mapping, as used at evaluation time. */
+export interface StatusMapping {
+  inProgressStatusIds: string[];
+  doneStatusIds: string[];
+}
+
+/** Normalized status category derived from the Status field. */
 export type StatusCategory = 'todo' | 'inProgress' | 'done' | 'unknown';
 
 /** Resolved field values for a single project item, keyed elsewhere by contentId. */
@@ -22,6 +35,8 @@ export interface ItemFieldData {
   /** Date-only string 'YYYY-MM-DD', or null when unset. */
   startDate: string | null;
   endDate: string | null;
+  /** Status option id, or null when unset. */
+  statusId: string | null;
   /** Raw Status option name, or null when unset. */
   statusName: string | null;
 }
