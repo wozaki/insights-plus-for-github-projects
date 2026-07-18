@@ -6,7 +6,7 @@
 
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { PROJECT_URL_PATTERNS, isProjectPage, projectKey } from './list-view-url';
-import { readMemexData, type MemexData } from './memex-data';
+import { readMemexData } from './memex-data';
 import { getMapping, setMapping, isMappingChange, isValidMapping } from './field-config';
 import { guessMapping } from './field-guesser';
 import { classifyStatus } from './status-classifier';
@@ -20,8 +20,9 @@ import {
   getRowContentId,
   getColumnIndex,
   getCellAt,
+  filterFieldsVisibleAsColumns,
 } from './table-scraper';
-import type { DateFieldMapping } from './types';
+import type { DateFieldMapping, DateFieldOption } from './types';
 import './style.css';
 
 const LOG_PREFIX = '[Date Field Alerts]';
@@ -70,7 +71,11 @@ export default defineContentScript({
       }
       if (token !== initToken) return;
 
-      mountConfigView(grid, key, metaOnly, mapping);
+      // Only offer fields that are actually columns in this view — a field can
+      // exist on the project without being added here, and picking one would
+      // save but never find a cell to annotate.
+      const dateFields = filterFieldsVisibleAsColumns(grid, metaOnly.dateFields);
+      mountConfigView(grid, key, dateFields, mapping);
 
       if (isValidMapping(mapping)) {
         renderAlerts(grid, mapping);
@@ -83,13 +88,13 @@ export default defineContentScript({
     function mountConfigView(
       grid: HTMLElement,
       key: string,
-      meta: MemexData,
+      dateFields: DateFieldOption[],
       mapping: DateFieldMapping | null,
     ): void {
       const view = createConfigView({
-        dateFields: meta.dateFields,
+        dateFields,
         currentMapping: mapping,
-        guessedMapping: guessMapping(meta.dateFields),
+        guessedMapping: guessMapping(dateFields),
         onSave: (next) => setMapping(key, next),
       });
 

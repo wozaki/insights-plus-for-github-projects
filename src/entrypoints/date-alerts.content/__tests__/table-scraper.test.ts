@@ -7,6 +7,7 @@ import {
   getDataRows,
   getRowContentId,
   getCellAt,
+  filterFieldsVisibleAsColumns,
 } from '../table-scraper';
 
 const COLUMNS = ['Title', 'Status', 'Iteration', 'Milestone', 'Start on', 'End on'];
@@ -99,6 +100,33 @@ describe('getColumnIndex', () => {
   it('returns -1 for a hidden/missing column', () => {
     const grid = buildGrid([]);
     expect(getColumnIndex(grid, 'TestTime')).toBe(-1);
+  });
+});
+
+describe('filterFieldsVisibleAsColumns', () => {
+  it('keeps only fields that are currently visible as a column', () => {
+    const grid = buildGrid([]);
+    const fields = [
+      { id: '1', name: 'Start on' },
+      { id: '2', name: 'End on' },
+      { id: '3', name: 'Due date' }, // exists on the project, but not added to this view
+    ];
+    expect(filterFieldsVisibleAsColumns(grid, fields)).toEqual([
+      { id: '1', name: 'Start on' },
+      { id: '2', name: 'End on' },
+    ]);
+  });
+
+  it('matches case-insensitively', () => {
+    const grid = buildGrid([]);
+    expect(filterFieldsVisibleAsColumns(grid, [{ id: '1', name: 'START ON' }])).toEqual([
+      { id: '1', name: 'START ON' },
+    ]);
+  });
+
+  it('returns an empty array when no fields are visible', () => {
+    const grid = buildGrid([]);
+    expect(filterFieldsVisibleAsColumns(grid, [{ id: '1', name: 'Due date' }])).toEqual([]);
   });
 });
 

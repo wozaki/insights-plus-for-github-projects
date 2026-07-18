@@ -3,6 +3,8 @@
 // to the DOM cells that annotations attach to. Uses role attributes (stable) and
 // only substring class matches where unavoidable (GitHub hashes CSS class names).
 
+import type { DateFieldOption } from './types';
+
 /** The list-view grid element, or null when not present (e.g. board view). */
 export function getGrid(doc: Document = document): HTMLElement | null {
   return doc.querySelector<HTMLElement>('[role="grid"]');
@@ -34,6 +36,22 @@ export function getColumnIndex(grid: HTMLElement, fieldName: string): number {
   const target = fieldName.trim().toLowerCase();
   const names = getVisibleColumnNames(grid);
   return names.findIndex((name) => name.toLowerCase() === target);
+}
+
+/**
+ * Keep only the fields that are currently visible as a column in the grid.
+ *
+ * A field can exist on the project (and so appear in the embedded field
+ * metadata) without being added to this particular view's column list. Picking
+ * such a field as Start/End would save successfully but never find a cell to
+ * annotate, so candidates are restricted to what's actually on screen.
+ */
+export function filterFieldsVisibleAsColumns(
+  grid: HTMLElement,
+  fields: DateFieldOption[],
+): DateFieldOption[] {
+  const visible = new Set(getVisibleColumnNames(grid).map((name) => name.toLowerCase()));
+  return fields.filter((field) => visible.has(field.name.trim().toLowerCase()));
 }
 
 /** Data rows (those with a Title rowheader), excluding the header row. */
