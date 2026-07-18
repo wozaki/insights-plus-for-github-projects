@@ -1,0 +1,123 @@
+/* Date Field Alerts - Styles
+ * Uses GitHub Primer CSS variables so annotations follow the viewer's theme
+ * (light/dark). Fallback values keep things legible if a variable is missing.
+ */
+
+/* --- In-cell annotations --- */
+.iplus-date-alert {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 500;
+  white-space: nowrap;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+.iplus-date-alert--normal {
+  color: var(--fgColor-muted, #59636e);
+}
+
+.iplus-date-alert--caution {
+  color: var(--fgColor-attention, #9a6700);
+}
+
+.iplus-date-alert--warning {
+  color: var(--fgColor-danger, #d1242f);
+}
+
+/* --- Config view (top settings bar) --- */
+.iplus-date-config {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--borderColor-default, #d1d9e0);
+  background: var(--bgColor-muted, #f6f8fa);
+  font-size: 12px;
+  color: var(--fgColor-default, #1f2328);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+}
+
+.iplus-date-config__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iplus-date-config__summary {
+  color: var(--fgColor-muted, #59636e);
+}
+
+.iplus-date-config__summary--invalid {
+  color: var(--fgColor-danger, #d1242f);
+}
+
+.iplus-date-config__button,
+.iplus-date-config__save,
+.iplus-date-config__cancel {
+  cursor: pointer;
+  padding: 2px 10px;
+  font-size: 12px;
+  line-height: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--borderColor-default, #d1d9e0);
+  background: var(--bgColor-default, #ffffff);
+  color: var(--fgColor-default, #1f2328);
+}
+
+.iplus-date-config__button:hover,
+.iplus-date-config__save:hover,
+.iplus-date-config__cancel:hover {
+  background: var(--bgColor-muted, #f6f8fa);
+}
+
+.iplus-date-config__save {
+  border-color: var(--borderColor-accent-emphasis, #0969da);
+  background: var(--bgColor-accent-emphasis, #0969da);
+  color: #ffffff;
+}
+
+.iplus-date-config__save:hover {
+  background: var(--bgColor-accent-emphasis, #0757ba);
+}
+
+.iplus-date-config__panel {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.iplus-date-config__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iplus-date-config__label {
+  font-size: 11px;
+  color: var(--fgColor-muted, #59636e);
+}
+
+.iplus-date-config__select {
+  min-width: 160px;
+  padding: 3px 6px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--borderColor-default, #d1d9e0);
+  background: var(--bgColor-default, #ffffff);
+  color: var(--fgColor-default, #1f2328);
+}
+
+.iplus-date-config__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iplus-date-config__error {
+  color: var(--fgColor-danger, #d1242f);
+  font-size: 11px;
+}

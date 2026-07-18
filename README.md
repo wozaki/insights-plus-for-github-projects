@@ -63,6 +63,14 @@ Calculates and displays the average velocity across multiple iterations in bar/c
 
 <img src="docs/images/screenshot-Velocity-Calculator.png" alt="Average Velocity Calculation" width="700">
 
+### 3. Date Field Alerts (List View)
+
+Adds small, in-cell hints to Date custom fields in the **list view** — without adding new columns — to surface missing dates, long-running work, and overdue items.
+
+- ⚠️ **Missing Start / End**: flags in-progress items with no start date, and done items with no end date
+- ⏱️ **Age**: shows how many days an in-progress item has been running, color-coded (normal / caution / warning)
+- 🔴 **Overdue**: flags not-done items past their end date
+
 ## Usage
 
 ### 1. Burn-up Chart Enhancement
@@ -104,6 +112,28 @@ Configure your chart with the following settings:
 1. Open the GitHub Project Insights page (`/insights`)
 2. When a bar/column chart with Iteration on X-axis is displayed, the extension will automatically calculate the average velocity
 3. The average velocity will be displayed on the chart
+
+### 3. Date Field Alerts
+
+#### How to Use
+
+1. Open a GitHub Project **list (table) view** (`/views/...`)
+2. A settings bar appears at the top of the list. Click **Configure**, map your **Start** and **End** date fields (likely matches are pre-selected from your Date fields), and click **Save**
+3. Alerts appear inline next to the dates in the Start/End columns, and update as you scroll
+
+#### Alert rules
+
+| Status | Condition | Shown |
+|--------|-----------|-------|
+| In Progress | No start date | Start: `⚠ Missing` |
+| In Progress | Has a past start date | Start: `Age Nd` (color-coded: 0–5 normal, 6–10 caution, 11+ warning) |
+| Not done | End date is in the past | End: `Overdue Nd` |
+| Done | No end date | End: `⚠ Missing` |
+
+Notes:
+
+- The Start/End field mapping is stored per project (via `chrome.storage.local`), so field renames don't break it (field IDs are used internally).
+- Alerts are computed from the items loaded on the page and refresh on reload; edits made after load are reflected after refreshing.
 
 ## Development
 
