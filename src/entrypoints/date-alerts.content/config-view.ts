@@ -22,6 +22,7 @@ export interface ConfigViewOptions {
 export function createConfigView(options: ConfigViewOptions): HTMLElement {
   const { dateFields, currentMapping, guessedMapping, statusOptions, onSave } = options;
   const fieldsById = new Map(dateFields.map((f) => [f.id, f.name]));
+  const statusOptionsById = new Map(statusOptions.map((o) => [o.id, o.name]));
 
   const container = document.createElement('div');
   container.className = CONFIG_VIEW_CLASS;
@@ -144,11 +145,21 @@ export function createConfigView(options: ConfigViewOptions): HTMLElement {
       error.textContent = 'Start and end must be different fields.';
       return;
     }
+
+    const inProgressStatusIds = getSelectedValues(inProgressStatusSelect.select);
+    const doneStatusIds = getSelectedValues(doneStatusSelect.select);
+    const overlapping = inProgressStatusIds.filter((id) => doneStatusIds.includes(id));
+    if (overlapping.length > 0) {
+      const names = overlapping.map((id) => statusOptionsById.get(id) ?? id).join(', ');
+      error.textContent = `"${names}" can't be both In Progress and Done — remove it from one.`;
+      return;
+    }
+
     const next: DateFieldMapping = {
       startFieldId,
       endFieldId,
-      inProgressStatusIds: getSelectedValues(inProgressStatusSelect.select),
-      doneStatusIds: getSelectedValues(doneStatusSelect.select),
+      inProgressStatusIds,
+      doneStatusIds,
     };
     try {
       await onSave(next);

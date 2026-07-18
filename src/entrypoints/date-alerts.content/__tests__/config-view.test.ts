@@ -150,6 +150,30 @@ describe('createConfigView', () => {
       expect(selectedValues(doneSelect)).toEqual(['s4']); // Done
     });
 
+    it('rejects saving when the same status is selected in both pickers', () => {
+      const onSave = vi.fn();
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: null,
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave,
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      const [inProgressSelect, doneSelect] = multiSelects(view);
+      Array.from(inProgressSelect.options).forEach((o) => (o.selected = o.value === 's3'));
+      Array.from(doneSelect.options).forEach((o) => (o.selected = o.value === 's3')); // same status, both lists
+
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__save`)!.click();
+
+      expect(onSave).not.toHaveBeenCalled();
+      const errorText = view.querySelector(`.${CONFIG_VIEW_CLASS}__error`)?.textContent ?? '';
+      expect(errorText).toContain('Review'); // resolved to the status name, not the raw id
+      expect(errorText).toContain("can't be both");
+    });
+
     it('uses the saved status mapping instead of the keyword guess when present', () => {
       const view = createConfigView({
         dateFields: fields,
