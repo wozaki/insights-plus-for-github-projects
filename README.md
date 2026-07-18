@@ -67,7 +67,7 @@ Calculates and displays the average velocity across multiple iterations in bar/c
 
 Adds small, in-cell hints to Date custom fields in the **list view** — without adding new columns — to surface missing dates, long-running work, and overdue items.
 
-- ⚠️ **Missing Start / End**: flags in-progress items with no start date, and done items with no end date
+- ⚠️ **Missing Start / End**: flags in-progress items with no start date, in-progress items with no end date, and done items with no end date
 - ⏱️ **Age**: shows how many days an in-progress item has been running, color-coded (normal / caution / warning)
 - 🔴 **Overdue**: flags not-done items past their end date
 
@@ -128,6 +128,7 @@ Configure your chart with the following settings:
 | In Progress | No start date | Start: `⚠ Missing` |
 | In Progress | Has a past start date | Start: `Age Nd` (color-coded: 0–5 normal, 6–10 caution, 11+ warning) |
 | Not done | End date is in the past | End: `Overdue Nd` |
+| In Progress | No end date | End: `⚠ Missing` |
 | Done | No end date | End: `⚠ Missing` |
 
 Notes:

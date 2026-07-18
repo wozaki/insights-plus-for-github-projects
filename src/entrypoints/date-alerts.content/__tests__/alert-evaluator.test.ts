@@ -89,8 +89,13 @@ describe('evaluate - End cell', () => {
     expect(result.end).toEqual({ type: 'missingEnd', text: '⚠ Missing', level: 'caution' });
   });
 
-  it('does not flag Missing End for in-progress items', () => {
-    expect(run({ status: 'inProgress', endDate: null }).end).toBeNull();
+  it('flags Missing End when in progress without an end date (no target to check overdue against)', () => {
+    const result = run({ status: 'inProgress', endDate: null, startDate: '2026-07-01' });
+    expect(result.end).toEqual({ type: 'missingEnd', text: '⚠ Missing', level: 'caution' });
+  });
+
+  it('does not flag Missing End for todo items (not yet planned)', () => {
+    expect(run({ status: 'todo', endDate: null }).end).toBeNull();
   });
 });
 

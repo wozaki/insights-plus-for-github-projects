@@ -40,7 +40,7 @@ export function evaluate(input: EvaluateInput): EvaluationResult {
 
   return {
     start: evaluateStart(input, { isInProgress }, thresholds),
-    end: evaluateEnd(input, { isDone, isNotDone }),
+    end: evaluateEnd(input, { isDone, isInProgress, isNotDone }),
   };
 }
 
@@ -69,7 +69,7 @@ function evaluateStart(
 
 function evaluateEnd(
   input: EvaluateInput,
-  flags: { isDone: boolean; isNotDone: boolean },
+  flags: { isDone: boolean; isInProgress: boolean; isNotDone: boolean },
 ): CellAlert | null {
   // 1. Overdue: not done and the end date is in the past.
   if (input.endDate && flags.isNotDone) {
@@ -79,8 +79,10 @@ function evaluateEnd(
     }
   }
 
-  // 2. Missing End: done but no end date (data-quality warning).
-  if (flags.isDone && !input.endDate) {
+  // 2. Missing End: done with no end date (data-quality warning), or in progress
+  // with no target end date (can't tell if it's overdue without one). Todo items
+  // are excluded — no end date is expected while work is still unplanned.
+  if ((flags.isDone || flags.isInProgress) && !input.endDate) {
     return { type: 'missingEnd', text: '⚠ Missing', level: 'caution' };
   }
 
