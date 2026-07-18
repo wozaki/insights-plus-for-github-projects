@@ -171,6 +171,73 @@ describe('createConfigView', () => {
       expect(selectedValues(doneSelect).sort()).toEqual(['s3', 's4']);
     });
 
+    it('the Clear button empties a status picker, including any keyword-guessed pre-selection', () => {
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: null,
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave: vi.fn(),
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      const [inProgressSelect] = multiSelects(view);
+      expect(selectedValues(inProgressSelect).length).toBeGreaterThan(0); // guess pre-selected something
+
+      const [inProgressClear] = Array.from(view.querySelectorAll<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__clear`));
+      inProgressClear.click();
+
+      expect(selectedValues(inProgressSelect)).toEqual([]);
+    });
+
+    it('persists deselecting everything, and shows it empty when reopened (same instance)', async () => {
+      const onSave = vi.fn().mockResolvedValue(undefined);
+      const view = createConfigView({
+        dateFields: fields,
+        currentMapping: {
+          startFieldId: '1',
+          endFieldId: '2',
+          inProgressStatusIds: ['s2'],
+          doneStatusIds: ['s4'],
+        },
+        guessedMapping: { startFieldId: '1', endFieldId: '2' },
+        statusOptions,
+        onSave,
+      });
+      document.body.appendChild(view);
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click();
+
+      let [inProgressSelect, doneSelect] = multiSelects(view);
+      expect(selectedValues(inProgressSelect)).toEqual(['s2']);
+      expect(selectedValues(doneSelect)).toEqual(['s4']);
+
+      // Deselect everything in both pickers.
+      Array.from(inProgressSelect.options).forEach((o) => (o.selected = false));
+      Array.from(doneSelect.options).forEach((o) => (o.selected = false));
+
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__save`)!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(onSave).toHaveBeenCalledWith({
+        startFieldId: '1',
+        endFieldId: '2',
+        inProgressStatusIds: [],
+        doneStatusIds: [],
+      });
+
+      // Reopen (same createConfigView instance, no re-mount) and confirm it
+      // still shows empty rather than the original ['s2']/['s4'].
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click(); // open
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click(); // close
+      view.querySelector<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__button`)!.click(); // open again
+
+      [inProgressSelect, doneSelect] = multiSelects(view);
+      expect(selectedValues(inProgressSelect)).toEqual([]);
+      expect(selectedValues(doneSelect)).toEqual([]);
+    });
+
     it('keeps an intentionally empty saved status mapping empty, instead of re-showing the guess', () => {
       // Regression: reopening after saving with nothing selected must not
       // silently re-apply the keyword guess — that would misrepresent what's

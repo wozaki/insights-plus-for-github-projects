@@ -101,6 +101,27 @@
   color: var(--fgColor-muted, #59636e);
 }
 
+.iplus-date-config__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.iplus-date-config__clear {
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: var(--fgColor-accent, #0969da);
+  text-decoration: underline;
+}
+
+.iplus-date-config__clear:hover {
+  color: var(--fgColor-accent-emphasis, #0757ba);
+}
+
 .iplus-date-config__select {
   min-width: 160px;
   padding: 3px 6px;

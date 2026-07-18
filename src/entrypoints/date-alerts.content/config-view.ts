@@ -197,8 +197,14 @@ function buildSelect(label: string, fields: DateFieldOption[]): BuiltSelect {
 }
 
 function buildMultiSelect(label: string, options: DateFieldOption[]): BuiltSelect {
-  const wrapper = document.createElement('label');
+  // A plain <div> rather than <label>: it holds a "Clear" button alongside the
+  // caption, and a <button> inside a <label> would also forward its click to
+  // the label's associated control (the select), which is unwanted here.
+  const wrapper = document.createElement('div');
   wrapper.className = `${CONFIG_VIEW_CLASS}__field`;
+
+  const labelRow = document.createElement('div');
+  labelRow.className = `${CONFIG_VIEW_CLASS}__label-row`;
 
   const caption = document.createElement('span');
   caption.className = `${CONFIG_VIEW_CLASS}__label`;
@@ -216,7 +222,19 @@ function buildMultiSelect(label: string, options: DateFieldOption[]): BuiltSelec
     select.appendChild(el);
   }
 
-  wrapper.append(caption, select);
+  // Native <select multiple> has no reliable "deselect all" gesture — clicking
+  // an option (without Ctrl/Cmd) just selects that one instead of clearing the
+  // rest. An explicit Clear button avoids that entirely.
+  const clearButton = document.createElement('button');
+  clearButton.type = 'button';
+  clearButton.className = `${CONFIG_VIEW_CLASS}__clear`;
+  clearButton.textContent = 'Clear';
+  clearButton.addEventListener('click', () => {
+    setSelectedValues(select, []);
+  });
+
+  labelRow.append(caption, clearButton);
+  wrapper.append(labelRow, select);
   return { wrapper, select };
 }
 
