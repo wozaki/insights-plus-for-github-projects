@@ -71,6 +71,8 @@ Adds small, in-cell hints to Date custom fields in the **list view** — without
 - ⏱️ **Age**: shows how many days an in-progress item has been running, color-coded (normal / caution / warning)
 - 🔴 **Overdue**: flags not-done items past their end date
 
+<img src="docs/images/screenshot-Date-Field-Alerts.png" alt="Date Field Alerts" width="700">
+
 ## Usage
 
 ### 1. Burn-up Chart Enhancement
