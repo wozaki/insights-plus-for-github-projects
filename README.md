@@ -120,10 +120,14 @@ Configure your chart with the following settings:
 #### How to Use
 
 1. Open a GitHub Project **list (table) view** (`/views/...`)
-2. A settings bar appears at the top of the list. Click **Configure**, map your **Start** and **End** date fields (likely matches are pre-selected from your Date fields), and click **Save**
-3. Alerts appear inline next to the dates in the Start/End columns, and update as you scroll
+2. Click **Configure** in the settings bar, map **Start**/**End** date fields, and **Save**
+3. Alerts appear inline next to the dates, updating as you scroll
 
-By default (before you ever open **Configure**), whether an item counts as "in progress" or "done" is guessed from its Status option name (e.g. "In Progress", "Review", "Done"). If your Status column uses different wording, or has enough options (~10) that guessing gets unreliable, open **Configure** and set the optional **In Progress statuses** / **Done statuses** pickers — both are pre-filled with the current guess, so you only need to adjust what's wrong. Once you save, the picker's contents take full control — a status left out of both is treated as unclassified and gets no alerts at all, even if it would otherwise keyword-match. This also applies if you save with both pickers empty (e.g. via the **Clear** link, useful since a plain `<select multiple>` has no built-in way to deselect everything at once): that turns status-based alerts off entirely rather than reverting to the automatic guess.
+"In progress" / "done" is guessed from the Status option name by default. To override:
+
+- Open **Configure** and edit the optional **In Progress statuses** / **Done statuses** pickers (pre-filled with the current guess)
+- Once saved, the picker takes full control — an unselected status gets no alert, even if it would otherwise keyword-match
+- Saving both empty (**Clear** link) disables status-based alerts entirely, rather than reverting to the guess
 
 #### Alert rules
 
