@@ -416,12 +416,14 @@ export function extractValuesFromPointMarkers(svg: Element): PointMarkerValues {
   const findLatestPoint = (points: typeof openPoints) => {
     if (points.length === 0) return null;
 
-    const validPoints = points.filter(p => p.date && p.date <= today);
+    const validPoints = points.filter(
+      (p): p is typeof p & { date: Date } => p.date !== null && p.date <= today
+    );
     if (validPoints.length === 0) {
       return points[points.length - 1];
     }
 
-    validPoints.sort((a, b) => b.date!.getTime() - a.date!.getTime());
+    validPoints.sort((a, b) => b.date.getTime() - a.date.getTime());
     return validPoints[0];
   };
 

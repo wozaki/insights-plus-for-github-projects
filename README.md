@@ -63,6 +63,16 @@ Calculates and displays the average velocity across multiple iterations in bar/c
 
 <img src="docs/images/screenshot-Velocity-Calculator.png" alt="Average Velocity Calculation" width="700">
 
+### 3. Date Field Alerts (List View)
+
+Adds small, in-cell hints to Date custom fields in the **list view** — without adding new columns — to surface missing dates, long-running work, and overdue items.
+
+- ⚠️ **Missing Start / End**: flags in-progress items with no start date, in-progress items with no end date, and done items with no end date
+- ⏱️ **Age**: shows how many days an in-progress item has been running, color-coded (normal / caution / warning)
+- 🔴 **Overdue**: flags not-done items past their end date
+
+<img src="docs/images/screenshot-Date-Field-Alerts.png" alt="Date Field Alerts" width="700">
+
 ## Usage
 
 ### 1. Burn-up Chart Enhancement
@@ -104,6 +114,35 @@ Configure your chart with the following settings:
 1. Open the GitHub Project Insights page (`/insights`)
 2. When a bar/column chart with Iteration on X-axis is displayed, the extension will automatically calculate the average velocity
 3. The average velocity will be displayed on the chart
+
+### 3. Date Field Alerts
+
+#### How to Use
+
+1. Open a GitHub Project **list (table) view** (`/views/...`)
+2. Click **Configure** in the settings bar, map **Start**/**End** date fields, and **Save**
+3. Alerts appear inline next to the dates, updating as you scroll
+
+"In progress" / "done" is guessed from the Status option name by default. To override:
+
+- Open **Configure** and edit the optional **In Progress statuses** / **Done statuses** pickers (pre-filled with the current guess)
+- Once saved, the picker takes full control — an unselected status gets no alert, even if it would otherwise keyword-match
+- Saving both empty (**Clear** link) disables status-based alerts entirely, rather than reverting to the guess
+
+#### Alert rules
+
+| Status | Condition | Shown |
+|--------|-----------|-------|
+| In Progress | No start date | Start: `⚠ Missing` |
+| In Progress | Has a past start date | Start: `Age Nd` (color-coded: 0–5 normal, 6–10 caution, 11+ warning) |
+| Todo or In Progress | End date is in the past | End: `Overdue Nd` |
+| In Progress | No end date | End: `⚠ Missing` |
+| Done | No end date | End: `⚠ Missing` |
+
+Notes:
+
+- The Start/End field mapping (and the optional status pickers) are stored per project (via `chrome.storage.local`), so field renames don't break it (field/status IDs are used internally).
+- Alerts are computed from the items loaded on the page and refresh on reload; edits made after load are reflected after refreshing.
 
 ## Development
 
