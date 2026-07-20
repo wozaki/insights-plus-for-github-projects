@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   getGrid,
+  getTableRoot,
   getColumnName,
   getVisibleColumnNames,
   getColumnIndex,
@@ -74,6 +75,22 @@ describe('getGrid', () => {
 
   it('returns null when absent', () => {
     expect(getGrid()).toBeNull();
+  });
+});
+
+describe('getTableRoot', () => {
+  it('finds the table root ancestor (list/table layout)', () => {
+    const grid = buildGrid([]);
+    const tableRoot = document.createElement('div');
+    tableRoot.className = 'table-module__tableRoot__abc123';
+    grid.parentElement!.insertBefore(tableRoot, grid);
+    tableRoot.appendChild(grid);
+    expect(getTableRoot(grid)).toBe(tableRoot);
+  });
+
+  it('returns null when the grid has no table root ancestor (e.g. Roadmap view)', () => {
+    const grid = buildGrid([]);
+    expect(getTableRoot(grid)).toBeNull();
   });
 });
 

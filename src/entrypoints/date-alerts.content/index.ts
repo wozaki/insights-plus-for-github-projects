@@ -16,6 +16,7 @@ import { createConfigView, CONFIG_VIEW_CLASS } from './config-view';
 import { applyAlert, removeAllAnnotations } from './cell-annotator';
 import {
   getGrid,
+  getTableRoot,
   getDataRows,
   getRowContentId,
   getColumnIndex,
@@ -59,6 +60,12 @@ export default defineContentScript({
       const grid = await waitForGrid(() => token === initToken);
       if (!grid || token !== initToken) return;
 
+      // Other layouts (e.g. Roadmap) also render a `[role="grid"]`; only the
+      // list/table layout has this ancestor, so treat its absence as "not the
+      // list view" rather than mounting against the grid directly.
+      const tableRoot = getTableRoot(grid);
+      if (!tableRoot) return;
+
       const key = projectKey();
       if (!key) return;
 
@@ -75,7 +82,7 @@ export default defineContentScript({
       // exist on the project without being added here, and picking one would
       // save but never find a cell to annotate.
       const dateFields = filterFieldsVisibleAsColumns(grid, metaOnly.dateFields);
-      mountConfigView(grid, key, dateFields, metaOnly.statusOptionList, mapping);
+      mountConfigView(tableRoot, key, dateFields, metaOnly.statusOptionList, mapping);
 
       if (isValidMapping(mapping)) {
         renderAlerts(grid, mapping);
@@ -86,7 +93,7 @@ export default defineContentScript({
     }
 
     function mountConfigView(
-      grid: HTMLElement,
+      anchor: HTMLElement,
       key: string,
       dateFields: DateFieldOption[],
       statusOptions: DateFieldOption[],
@@ -100,7 +107,6 @@ export default defineContentScript({
         onSave: (next) => setMapping(key, next),
       });
 
-      const anchor = grid.closest('[class*="table-module__tableRoot"]') ?? grid;
       anchor.parentElement?.insertBefore(view, anchor);
     }
 

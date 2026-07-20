@@ -5,9 +5,25 @@
 
 import type { DateFieldOption } from './types';
 
-/** The list-view grid element, or null when not present (e.g. board view). */
+/**
+ * The `[role="grid"]` element, or null when not present (e.g. board view).
+ *
+ * Note: this alone doesn't mean we're in the list/table layout — the Roadmap
+ * view also renders a `[role="grid"]`. Use `getTableRoot` to confirm.
+ */
 export function getGrid(doc: Document = document): HTMLElement | null {
   return doc.querySelector<HTMLElement>('[role="grid"]');
+}
+
+/**
+ * The list-view table root ancestor of the grid, or null when the grid
+ * belongs to a different layout that happens to also render a
+ * `[role="grid"]` (e.g. Roadmap). This feature's cell annotations only make
+ * sense in the table layout, so callers should treat a null result as "not
+ * the list view" rather than falling back to the grid itself.
+ */
+export function getTableRoot(grid: HTMLElement): HTMLElement | null {
+  return grid.closest<HTMLElement>('[class*="table-module__tableRoot"]');
 }
 
 /** Clean field name shown in a column header (e.g. "Start on"). */
