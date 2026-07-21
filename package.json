@@ -2,7 +2,7 @@
   "name": "insights-plus-for-github-projects",
   "version": "0.4.1",
   "type": "module",
-  "packageManager": "pnpm@11.15.0",
+  "packageManager": "pnpm@11.15.1",
   "description": "A Chrome extension that enhances GitHub Projects with insights like velocity prediction, completion date estimation, and more",
   "scripts": {
     "dev": "wxt",
