@@ -15,16 +15,18 @@ const statusOptions: DateFieldOption[] = [
   { id: 's4', name: 'Done' },
 ];
 
-function dateSelects(view: HTMLElement): HTMLSelectElement[] {
-  return Array.from(
+function dateSelects(view: HTMLElement): [HTMLSelectElement, HTMLSelectElement] {
+  const els = Array.from(
     view.querySelectorAll<HTMLSelectElement>(
       `.${CONFIG_VIEW_CLASS}__select:not(.${CONFIG_VIEW_CLASS}__select--multi)`,
     ),
   );
+  return [els[0]!, els[1]!];
 }
 
-function multiSelects(view: HTMLElement): HTMLSelectElement[] {
-  return Array.from(view.querySelectorAll<HTMLSelectElement>(`.${CONFIG_VIEW_CLASS}__select--multi`));
+function multiSelects(view: HTMLElement): [HTMLSelectElement, HTMLSelectElement] {
+  const els = Array.from(view.querySelectorAll<HTMLSelectElement>(`.${CONFIG_VIEW_CLASS}__select--multi`));
+  return [els[0]!, els[1]!];
 }
 
 function selectedValues(select: HTMLSelectElement): string[] {
@@ -209,7 +211,7 @@ describe('createConfigView', () => {
       const [inProgressSelect] = multiSelects(view);
       expect(selectedValues(inProgressSelect).length).toBeGreaterThan(0); // guess pre-selected something
 
-      const [inProgressClear] = Array.from(view.querySelectorAll<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__clear`));
+      const inProgressClear = view.querySelectorAll<HTMLButtonElement>(`.${CONFIG_VIEW_CLASS}__clear`)[0]!;
       inProgressClear.click();
 
       expect(selectedValues(inProgressSelect)).toEqual([]);

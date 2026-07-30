@@ -80,8 +80,8 @@ export function detectChartType(svg: Element): 'burnup' | 'velocity' | 'unknown'
   }
 
   const columnPoints = svg.querySelectorAll('.highcharts-series .highcharts-point');
-  if (columnPoints.length > 0) {
-    const firstPoint = columnPoints[0];
+  const firstPoint = columnPoints[0];
+  if (firstPoint) {
     const pathData = firstPoint.getAttribute('d');
 
     if (pathData && pathData.includes('L') && pathData.includes('Z')) {
@@ -137,9 +137,9 @@ export function extractFromColumnChart(svg: Element): VelocityChartResult | null
     const match = ariaLabel.match(/^(.+?),\s*([\d.]+)\.\s*(.*)$/);
     if (!match) return;
 
-    const name = match[1].trim();
-    const estimate = parseFloat(match[2]);
-    const groupName = match[3].replace(/\.$/, '').trim() || undefined;
+    const name = match[1]!.trim();
+    const estimate = parseFloat(match[2]!);
+    const groupName = match[3]!.replace(/\.$/, '').trim() || undefined;
 
     if (!isNaN(estimate)) {
       iterations.push({ name, estimate, groupName, index });
@@ -282,29 +282,32 @@ export function extractFromSVG(): ChartDataResult {
     }
   }
 
-  if (completedData.length === 0 && openData.length === 0 && seriesData.length >= 2) {
-    const series0LastValue = seriesData[0].points.length > 0
-      ? seriesData[0].points[seriesData[0].points.length - 1].value
+  const series0 = seriesData[0];
+  const series1 = seriesData[1];
+
+  if (completedData.length === 0 && openData.length === 0 && series0 && series1) {
+    const series0LastValue = series0.points.length > 0
+      ? series0.points[series0.points.length - 1]!.value
       : 0;
-    const series1LastValue = seriesData[1].points.length > 0
-      ? seriesData[1].points[seriesData[1].points.length - 1].value
+    const series1LastValue = series1.points.length > 0
+      ? series1.points[series1.points.length - 1]!.value
       : 0;
 
     if (series0LastValue > series1LastValue) {
-      openData = seriesData[0].points;
-      completedData = seriesData[1].points;
-      completedStartPixel = seriesData[1].startPixel;
-      completedLastPixel = seriesData[1].lastPixel;
+      openData = series0.points;
+      completedData = series1.points;
+      completedStartPixel = series1.startPixel;
+      completedLastPixel = series1.lastPixel;
     } else {
-      openData = seriesData[1].points;
-      completedData = seriesData[0].points;
-      completedStartPixel = seriesData[0].startPixel;
-      completedLastPixel = seriesData[0].lastPixel;
+      openData = series1.points;
+      completedData = series0.points;
+      completedStartPixel = series0.startPixel;
+      completedLastPixel = series0.lastPixel;
     }
-  } else if (completedData.length === 0 && seriesData.length >= 1) {
-    completedData = seriesData[0].points;
-    completedStartPixel = seriesData[0].startPixel;
-    completedLastPixel = seriesData[0].lastPixel;
+  } else if (completedData.length === 0 && series0) {
+    completedData = series0.points;
+    completedStartPixel = series0.startPixel;
+    completedLastPixel = series0.lastPixel;
   }
 
   const pointValues = extractValuesFromPointMarkers(svg);
@@ -316,13 +319,13 @@ export function extractFromSVG(): ChartDataResult {
   if (pointValues.open !== null) {
     total = pointValues.open;
   } else if (openData.length > 0) {
-    total = Math.round(openData[openData.length - 1].value);
+    total = Math.round(openData[openData.length - 1]!.value);
   }
 
   if (pointValues.completed !== null) {
     completed = pointValues.completed;
   } else if (completedData.length > 0) {
-    completed = Math.round(completedData[completedData.length - 1].value);
+    completed = Math.round(completedData[completedData.length - 1]!.value);
   }
 
   // Total = Open (remaining) + Completed
@@ -359,10 +362,7 @@ export function extractFromSVG(): ChartDataResult {
 }
 
 function findSeriesByLegendIndex(seriesData: SeriesData[], legendIndex: number): SeriesData | null {
-  if (legendIndex < seriesData.length) {
-    return seriesData[legendIndex];
-  }
-  return null;
+  return seriesData[legendIndex] ?? null;
 }
 
 /**
@@ -386,14 +386,14 @@ export function extractValuesFromPointMarkers(svg: Element): PointMarkerValues {
     const valueMatch = ariaLabel.match(/,\s*([\d.]+)\.\s+(Open|Completed|オープン|完了)/i);
     if (!valueMatch) return;
 
-    const value = parseFloat(valueMatch[1]);
-    const type = valueMatch[2].toLowerCase();
+    const value = parseFloat(valueMatch[1]!);
+    const type = valueMatch[2]!.toLowerCase();
 
     const dateMatch = ariaLabel.match(/^([A-Za-z]{3})\s+(\d{1,2})(?:\s+(\d{4}))?/);
     let date: Date | null = null;
     if (dateMatch) {
-      const monthName = dateMatch[1].toLowerCase();
-      const day = parseInt(dateMatch[2], 10);
+      const monthName = dateMatch[1]!.toLowerCase();
+      const day = parseInt(dateMatch[2]!, 10);
       const year = dateMatch[3] ? parseInt(dateMatch[3], 10) : new Date().getFullYear();
       const month = MONTH_NAME_TO_NUMBER[monthName];
       if (month !== undefined) {
@@ -446,8 +446,8 @@ export function extractFirstPointFromPath(d: string | null): PixelPoint | null {
   const moveMatch = d.match(/^M\s*([\d.]+)\s*([\d.]+)/i);
   if (moveMatch) {
     return {
-      x: parseFloat(moveMatch[1]),
-      y: parseFloat(moveMatch[2]),
+      x: parseFloat(moveMatch[1]!),
+      y: parseFloat(moveMatch[2]!),
     };
   }
   return null;
@@ -464,15 +464,15 @@ export function extractLastPointFromPath(d: string | null, plotBox: PlotBox): Pi
 
   while ((match = regex.exec(d)) !== null) {
     const command = match[1];
-    const args = match[2].trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
+    const args = match[2]!.trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
 
     switch (command) {
       case 'M':
       case 'L':
         for (let i = 0; i < args.length; i += 2) {
           if (i + 1 < args.length) {
-            currentX = args[i];
-            currentY = args[i + 1];
+            currentX = args[i]!;
+            currentY = args[i + 1]!;
             if (isPointInPlotBox(currentX, currentY, plotBox)) {
               lastValidPoint = { x: currentX, y: currentY };
             }
@@ -499,8 +499,8 @@ export function extractLastPointFromPath(d: string | null, plotBox: PlotBox): Pi
       case 'l':
         for (let i = 0; i < args.length; i += 2) {
           if (i + 1 < args.length) {
-            currentX += args[i];
-            currentY += args[i + 1];
+            currentX += args[i]!;
+            currentY += args[i + 1]!;
             if (isPointInPlotBox(currentX, currentY, plotBox)) {
               lastValidPoint = { x: currentX, y: currentY };
             }
@@ -553,15 +553,15 @@ export function parsePathData(
 
   while ((match = regex.exec(d)) !== null) {
     const command = match[1];
-    const args = match[2].trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
+    const args = match[2]!.trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
 
     switch (command) {
       case 'M':
       case 'L':
         for (let i = 0; i < args.length; i += 2) {
           if (i + 1 < args.length) {
-            currentX = args[i];
-            currentY = args[i + 1];
+            currentX = args[i]!;
+            currentY = args[i + 1]!;
             allPoints.push({ x: currentX, y: currentY });
           }
         }
@@ -570,8 +570,8 @@ export function parsePathData(
       case 'l':
         for (let i = 0; i < args.length; i += 2) {
           if (i + 1 < args.length) {
-            currentX += args[i];
-            currentY += args[i + 1];
+            currentX += args[i]!;
+            currentY += args[i + 1]!;
             allPoints.push({ x: currentX, y: currentY });
           }
         }
@@ -603,8 +603,8 @@ export function parsePathData(
       case 'C':
         for (let i = 0; i < args.length; i += 6) {
           if (i + 5 < args.length) {
-            currentX = args[i + 4];
-            currentY = args[i + 5];
+            currentX = args[i + 4]!;
+            currentY = args[i + 5]!;
             allPoints.push({ x: currentX, y: currentY });
           }
         }
@@ -612,8 +612,8 @@ export function parsePathData(
       case 'c':
         for (let i = 0; i < args.length; i += 6) {
           if (i + 5 < args.length) {
-            currentX += args[i + 4];
-            currentY += args[i + 5];
+            currentX += args[i + 4]!;
+            currentY += args[i + 5]!;
             allPoints.push({ x: currentX, y: currentY });
           }
         }
@@ -659,7 +659,7 @@ function sampleByDay(points: DataPoint[]): DataPoint[] {
   let lastDate: string | null = null;
 
   for (const point of points) {
-    const dateStr = point.date.toISOString().split('T')[0];
+    const dateStr = point.date.toISOString().split('T')[0]!;
     if (dateStr !== lastDate) {
       sampled.push(point);
       lastDate = dateStr;
@@ -675,18 +675,18 @@ export function extractDateRangeFromLabels(xDates: { text: string; x: number }[]
   const parseDate = (text: string): { month: number; day: number; year: number | null } | null => {
     const jpMatch = text.match(/(\d{1,2})月\s*(\d{1,2})(?:\s*(\d{4}))?/);
     if (jpMatch) {
-      const month = parseInt(jpMatch[1], 10) - 1;
-      const day = parseInt(jpMatch[2], 10);
+      const month = parseInt(jpMatch[1]!, 10) - 1;
+      const day = parseInt(jpMatch[2]!, 10);
       const year = jpMatch[3] ? parseInt(jpMatch[3], 10) : null;
       return { month, day, year };
     }
 
     const enMatch = text.match(/([A-Za-z]{3})\s*(\d{1,2})(?:\s*(\d{4}))?/);
     if (enMatch) {
-      const monthName = enMatch[1].toLowerCase();
+      const monthName = enMatch[1]!.toLowerCase();
       const month = MONTH_NAME_TO_NUMBER[monthName];
       if (month === undefined) return null;
-      const day = parseInt(enMatch[2], 10);
+      const day = parseInt(enMatch[2]!, 10);
       const year = enMatch[3] ? parseInt(enMatch[3], 10) : null;
       return { month, day, year };
     }
@@ -694,8 +694,8 @@ export function extractDateRangeFromLabels(xDates: { text: string; x: number }[]
     return null;
   };
 
-  const firstLabel = parseDate(xDates[0].text);
-  const lastLabel = parseDate(xDates[xDates.length - 1].text);
+  const firstLabel = parseDate(xDates[0]!.text);
+  const lastLabel = parseDate(xDates[xDates.length - 1]!.text);
 
   if (!firstLabel || !lastLabel) return null;
 
@@ -719,11 +719,11 @@ export function extractDateRangeFromPage(): DateRange | null {
   const jpDateRangeMatch = pageText.match(/(\d{1,2})月\s*(\d{1,2})\s*-\s*(\d{4})年(\d{1,2})月(\d{1,2})日/);
 
   if (jpDateRangeMatch) {
-    const startMonth = parseInt(jpDateRangeMatch[1], 10) - 1;
-    const startDay = parseInt(jpDateRangeMatch[2], 10);
-    const endYear = parseInt(jpDateRangeMatch[3], 10);
-    const endMonth = parseInt(jpDateRangeMatch[4], 10) - 1;
-    const endDay = parseInt(jpDateRangeMatch[5], 10);
+    const startMonth = parseInt(jpDateRangeMatch[1]!, 10) - 1;
+    const startDay = parseInt(jpDateRangeMatch[2]!, 10);
+    const endYear = parseInt(jpDateRangeMatch[3]!, 10);
+    const endMonth = parseInt(jpDateRangeMatch[4]!, 10) - 1;
+    const endDay = parseInt(jpDateRangeMatch[5]!, 10);
 
     let startYear = endYear;
     if (startMonth > endMonth) {
@@ -739,11 +739,11 @@ export function extractDateRangeFromPage(): DateRange | null {
   const enDateRangeMatch = pageText.match(/([A-Za-z]{3})\s*(\d{1,2})(?:,?\s*(\d{4}))?\s*-\s*([A-Za-z]{3})\s*(\d{1,2})(?:,?\s*(\d{4}))?/);
 
   if (enDateRangeMatch) {
-    const startMonthName = enDateRangeMatch[1].toLowerCase();
-    const startDay = parseInt(enDateRangeMatch[2], 10);
+    const startMonthName = enDateRangeMatch[1]!.toLowerCase();
+    const startDay = parseInt(enDateRangeMatch[2]!, 10);
     const startYearMatch = enDateRangeMatch[3] ? parseInt(enDateRangeMatch[3], 10) : null;
-    const endMonthName = enDateRangeMatch[4].toLowerCase();
-    const endDay = parseInt(enDateRangeMatch[5], 10);
+    const endMonthName = enDateRangeMatch[4]!.toLowerCase();
+    const endDay = parseInt(enDateRangeMatch[5]!, 10);
     const endYearMatch = enDateRangeMatch[6] ? parseInt(enDateRangeMatch[6], 10) : null;
 
     const startMonth = MONTH_NAME_TO_NUMBER[startMonthName];

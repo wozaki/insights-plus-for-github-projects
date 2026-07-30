@@ -361,10 +361,10 @@ describe('svg-extractor', () => {
       if (!result) return;
       expect(result.chartType).toBe('velocity');
       expect(result.iterations).toHaveLength(2);
-      expect(result.iterations[0].name).toBe('Iteration 1');
-      expect(result.iterations[0].estimate).toBe(10);
-      expect(result.iterations[0].groupName).toBe('team-a');
-      expect(result.iterations[1].estimate).toBe(15);
+      expect(result.iterations[0]!.name).toBe('Iteration 1');
+      expect(result.iterations[0]!.estimate).toBe(10);
+      expect(result.iterations[0]!.groupName).toBe('team-a');
+      expect(result.iterations[1]!.estimate).toBe(15);
     });
   });
 });

@@ -60,9 +60,9 @@ describe('applyAlert', () => {
 
     const els = cell.querySelectorAll(`[${MARKER_ATTR}]`);
     expect(els).toHaveLength(1);
-    expect(els[0].textContent).toBe('Overdue 3d');
-    expect(els[0].getAttribute(MARKER_ATTR)).toBe('overdue');
-    expect(els[0].className).toContain('iplus-date-alert--warning');
+    expect(els[0]!.textContent).toBe('Overdue 3d');
+    expect(els[0]!.getAttribute(MARKER_ATTR)).toBe('overdue');
+    expect(els[0]!.className).toContain('iplus-date-alert--warning');
   });
 
   it('removes the annotation when passed null', () => {

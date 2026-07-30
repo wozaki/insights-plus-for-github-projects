@@ -122,7 +122,7 @@ export async function initializeBurnup(): Promise<void> {
     const sortedData = [...burnupData.completedData]
       .map(p => ({ date: new Date(p.date), value: p.value }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
-    startValue = sortedData[0].value;
+    startValue = sortedData[0]!.value;
   }
 
   await recalculate();
