@@ -42,8 +42,8 @@
       "automergeType": "pr"
     },
     {
-      "description": "TypeScript",
-      "matchPackageNames": ["typescript"],
+      "description": "TypeScript (tsc via @typescript/native, TS 6 API via @typescript/typescript6)",
+      "matchPackageNames": ["typescript", "@typescript/typescript6"],
       "groupName": "typescript",
       "automerge": false
     },
