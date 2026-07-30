@@ -25,7 +25,7 @@ export function getOpenValueAtEndDate(openData: DataPoint[], endDate: Date): num
 
   // Get the last value before or at the end date
   const endTime = endDate.getTime();
-  let lastValue = sortedData[sortedData.length - 1].value;
+  let lastValue = sortedData[sortedData.length - 1]!.value;
   
   for (const point of sortedData) {
     if (point.date.getTime() <= endTime) {
@@ -58,7 +58,7 @@ export function getCompletedDataPoints(completedData: DataPoint[]): CompletedDat
     return { first: null, today: null };
   }
 
-  const first = sortedData[0];
+  const first = sortedData[0]!;
   
   // Today's date (including time until end of day)
   const now = new Date();

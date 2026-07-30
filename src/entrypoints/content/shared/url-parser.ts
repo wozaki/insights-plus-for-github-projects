@@ -37,7 +37,8 @@ export function parseProjectInsightsUrl(url: string = window.location.href): Par
       return null;
     }
     
-    const [type, orgOrUserName, projectsKeyword, projectNumber, insightsKeyword, ...rest] = pathParts;
+    const [type, orgOrUserName, projectsKeyword, projectNumber, insightsKeyword, ...rest] =
+      pathParts as [string, string, string, string, string, ...string[]];
     
     // Validate the path structure
     if (type !== 'orgs' && type !== 'users') {
@@ -55,8 +56,8 @@ export function parseProjectInsightsUrl(url: string = window.location.href): Par
     
     // Check if insight number is provided
     let insightNumber = 'default';
-    if (rest.length > 0 && /^\d+$/.test(rest[0])) {
-      insightNumber = rest[0];
+    if (rest.length > 0 && /^\d+$/.test(rest[0]!)) {
+      insightNumber = rest[0]!;
     }
     
     return {

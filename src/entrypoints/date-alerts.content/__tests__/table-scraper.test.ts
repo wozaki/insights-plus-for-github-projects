@@ -47,7 +47,7 @@ function buildGrid(rows: Array<{ contentId?: number; values: string[] }>): HTMLE
 
     const title = document.createElement('div');
     title.setAttribute('role', 'rowheader');
-    title.textContent = row.values[0];
+    title.textContent = row.values[0] ?? '';
     tr.appendChild(title);
 
     for (let i = 1; i < COLUMNS.length; i++) {
@@ -155,20 +155,20 @@ describe('getDataRows / getRowContentId', () => {
     ]);
     const rows = getDataRows(grid);
     expect(rows).toHaveLength(2);
-    expect(getRowContentId(rows[0])).toBe(111);
-    expect(getRowContentId(rows[1])).toBe(222);
+    expect(getRowContentId(rows[0]!)).toBe(111);
+    expect(getRowContentId(rows[1]!)).toBe(222);
   });
 
   it('returns null content id for a draft row without a hovercard tag', () => {
     const grid = buildGrid([{ values: ['Draft', 'Todo', '', '', '', ''] }]);
-    expect(getRowContentId(getDataRows(grid)[0])).toBeNull();
+    expect(getRowContentId(getDataRows(grid)[0]!)).toBeNull();
   });
 });
 
 describe('getCellAt', () => {
   it('maps column index to the correct cell, aligned with getColumnIndex', () => {
     const grid = buildGrid([{ contentId: 1, values: ['Title!', 'In Progress', 'Iter 1', 'M1', 'S-DATE', 'E-DATE'] }]);
-    const row = getDataRows(grid)[0];
+    const row = getDataRows(grid)[0]!;
 
     expect(getCellAt(row, 0)?.getAttribute('role')).toBe('rowheader'); // Title
     expect(getCellAt(row, getColumnIndex(grid, 'Status'))?.textContent).toBe('In Progress');
@@ -178,7 +178,7 @@ describe('getCellAt', () => {
 
   it('returns null for out-of-range or negative indices', () => {
     const grid = buildGrid([{ contentId: 1, values: ['T', 's', '', '', '', ''] }]);
-    const row = getDataRows(grid)[0];
+    const row = getDataRows(grid)[0]!;
     expect(getCellAt(row, -1)).toBeNull();
     expect(getCellAt(row, 99)).toBeNull();
   });

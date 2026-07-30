@@ -24,9 +24,9 @@ export function detectChartType(): ChartType {
   // Check for column chart (Velocity)
   // Column charts have .highcharts-point elements with rect-like path data
   const columnPoints = svg.querySelectorAll('.highcharts-series .highcharts-point');
-  if (columnPoints.length > 0) {
-    // Check if the first point has a column-like path (starts with M and has rectangular shape)
-    const firstPoint = columnPoints[0];
+  // Check if the first point has a column-like path (starts with M and has rectangular shape)
+  const firstPoint = columnPoints[0];
+  if (firstPoint) {
     const pathData = firstPoint.getAttribute('d');
     
     // Column chart paths typically have a closed rectangular shape

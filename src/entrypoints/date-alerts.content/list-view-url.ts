@@ -38,7 +38,8 @@ export function parseProjectUrl(url: string = window.location.href): ParsedProje
   // [orgs|users, name, projects, number, (views, viewNumber)?]
   if (parts.length < 4) return null;
 
-  const [type, name, projectsKeyword, projectNumber, viewsKeyword, viewNumber] = parts;
+  const [type, name, projectsKeyword, projectNumber, viewsKeyword, viewNumber] =
+    parts as [string, string, string, string, string?, string?];
   if (type !== 'orgs' && type !== 'users') return null;
   if (projectsKeyword !== 'projects') return null;
   if (!/^\d+$/.test(projectNumber)) return null;

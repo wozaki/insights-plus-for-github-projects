@@ -49,18 +49,14 @@ export function calculateVelocity(
   }
 
   // Get the latest point before or on today (same logic as rendering)
-  let latestPoint: typeof sortedData[0] | null = null;
+  // Falls back to the first point if none precede today
+  let latestPoint: typeof sortedData[0] = sortedData[0]!;
   for (const point of sortedData) {
     if (point.date.getTime() <= todayEnd.getTime()) {
       latestPoint = point;
     } else {
       break;
     }
-  }
-
-  // Use the first point if no point before today is found
-  if (!latestPoint) {
-    latestPoint = sortedData[0];
   }
 
   // Calculate lookback date (n days ago)
@@ -98,8 +94,8 @@ export function calculateVelocity(
   }
 
   // Calculate velocity using the first and last points in the lookback period
-  const firstRecentPoint = recentPoints[0];
-  const lastRecentPoint = recentPoints[recentPoints.length - 1];
+  const firstRecentPoint = recentPoints[0]!;
+  const lastRecentPoint = recentPoints[recentPoints.length - 1]!;
 
   // Determine the start value for the period
   // If the lookback period starts before the project start, use the project start
