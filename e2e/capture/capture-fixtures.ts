@@ -24,22 +24,34 @@ async function captureChart(page: Page, name: string, chartName: string): Promis
   await page.goto(url);
   const svg = page.locator('svg.highcharts-root').first();
   await expect(svg).toBeVisible();
-  // Let Highcharts finish its initial animation so paths hold final values.
-  await page.waitForTimeout(2_000);
+  // Wait until Highcharts' initial animation settles, so paths hold final values.
+  let previous = '';
+  await expect
+    .poll(async () => {
+      const current = await svg.evaluate((el) => el.outerHTML);
+      const settled = current === previous;
+      previous = current;
+      return settled;
+    }, { intervals: [500] })
+    .toBe(true);
 
   const html = await page.evaluate(() => {
     const picker = document.querySelector('[class*="DatePickerContainer"]');
     const root = document.querySelector('svg.highcharts-root')?.cloneNode(true) as Element | undefined;
+    if (!root) return null;
     // Path data is most of the file (one curve segment per day); sub-pixel
     // precision beyond 2 decimals doesn't affect the extracted values.
-    root?.querySelectorAll('path[d]').forEach((p) => {
+    root.querySelectorAll('path[d]').forEach((p) => {
       p.setAttribute('d', (p.getAttribute('d') ?? '').replace(/-?\d+\.\d{3,}/g, (n) => String(Number(Number(n).toFixed(2)))));
     });
-    return [picker?.outerHTML ?? '', root?.outerHTML ?? ''].filter(Boolean).join('\n');
+    // The picker is absent for non-time x-axes, which the validator relies on.
+    return [picker?.outerHTML ?? '', root.outerHTML].filter(Boolean).join('\n');
   });
-  // Highcharts generates random element ids per render; pin them so a
-  // re-capture only shows real changes.
-  save(name, url, html.replace(/highcharts-[a-z0-9]{7}-/g, 'highcharts-fixture-'));
+  if (!html) throw new Error(`No Highcharts SVG on ${url}; has GitHub changed the page?`);
+  // Highcharts generates random element ids per render, e.g. `highcharts-0aids7x-11-`;
+  // pin them so a re-capture only shows real changes. The trailing `\d+-`
+  // keeps class and variable names like `highcharts-neutral-color-10` intact.
+  save(name, url, html.replace(/highcharts-[a-z0-9]{7}-(?=\d+-)/g, 'highcharts-fixture-'));
 }
 
 test('capture velocity chart', async ({ page }) => {
@@ -60,15 +72,18 @@ test('capture list view', async ({ page }) => {
   await expect(page.locator('[role="grid"] [role="rowheader"]').first()).toBeVisible();
 
   // The embedded JSON the extension reads, and the table it annotates.
-  const html = await page.evaluate(() => {
-    const scripts = ['memex-columns-data', 'memex-paginated-items-data'].map((id) => {
-      const el = document.getElementById(id);
-      return el ? `<script type="application/json" id="${id}">${el.textContent}</script>` : '';
+  const parts = await page.evaluate(() => {
+    const json = ['memex-columns-data', 'memex-paginated-items-data'].map((id) => {
+      const text = document.getElementById(id)?.textContent;
+      return text ? `<script type="application/json" id="${id}">${text}</script>` : `missing #${id}`;
     });
     const table = document.querySelector('[role="grid"]')?.closest('[class*="table-module__tableRoot"]');
-    const clone = table?.cloneNode(true) as Element | undefined;
-    clone?.querySelectorAll('script, style').forEach((el) => el.remove());
-    return [...scripts, clone?.outerHTML ?? ''].join('\n');
+    const clone = table?.cloneNode(true);
+    if (!(clone instanceof Element)) return [...json, 'missing table root'];
+    clone.querySelectorAll('script, style').forEach((el) => el.remove());
+    return [...json, clone.outerHTML];
   });
-  save('list-view.html', url, html);
+  const missing = parts.filter((part) => part.startsWith('missing '));
+  if (missing.length > 0) throw new Error(`${missing.join(', ')} on ${url}; has GitHub changed the page?`);
+  save('list-view.html', url, parts.join('\n'));
 });

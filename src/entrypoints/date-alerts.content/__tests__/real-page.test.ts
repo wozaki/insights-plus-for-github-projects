@@ -15,7 +15,7 @@ import {
   getCellAt,
 } from '../table-scraper';
 import { guessMapping } from '../field-guesser';
-import { resolveStatusCategory } from '../status-classifier';
+import { classifyStatus, resolveStatusCategory } from '../status-classifier';
 import { evaluateItem } from '../alert-evaluator';
 import { applyAlert } from '../cell-annotator';
 
@@ -30,9 +30,8 @@ const EXPECTED: Record<string, { start: string | null; end: string | null }> = {
   '[e2e] In progress, missing start': { start: '⚠ Missing', end: null },
   '[e2e] In review, age warning': { start: 'Age 282d', end: null },
   '[e2e] Todo, no alerts': { start: null, end: null },
-  // Unlike the e2e test, no status mapping is saved here, so keyword matching
-  // classifies Todo as todo and an overdue Todo item is flagged.
-  '[e2e] Todo past end date, no alerts': { start: null, end: 'Overdue 251d' },
+  // Saving the config saves the In Progress/Done lists; Todo is in neither.
+  '[e2e] Todo past end date, no alerts': { start: null, end: null },
   '[e2e] Done, no alerts': { start: null, end: null },
   '[e2e] Done, missing end': { start: null, end: '⚠ Missing' },
 };
@@ -79,10 +78,14 @@ describe('date alerts on a real list view', () => {
     }
   });
 
-  it('annotates each date cell with the expected alert', () => {
+  it('annotates each date cell with the expected alert after saving the guessed config', () => {
     const grid = getGrid(document)!;
-    const fields = readMemexData(null, null, document)!.dateFields;
-    const { startFieldId, endFieldId } = guessMapping(fields);
+    const meta = readMemexData(null, null, document)!;
+    const { startFieldId, endFieldId } = guessMapping(meta.dateFields);
+    // What the config panel pre-selects and Save stores (see config-view.ts).
+    const idsClassifiedAs = (category: string) =>
+      meta.statusOptionList.filter((o) => classifyStatus(o.name) === category).map((o) => o.id);
+    const statusMapping = { inProgressStatusIds: idsClassifiedAs('inProgress'), doneStatusIds: idsClassifiedAs('done') };
     const data = readMemexData(startFieldId, endFieldId, document)!;
     const startCol = getColumnIndex(grid, 'Start Date');
     const endCol = getColumnIndex(grid, 'End Date');
@@ -90,7 +93,7 @@ describe('date alerts on a real list view', () => {
     for (const row of getDataRows(grid)) {
       const title = rowTitle(row);
       const item = data.itemsByContentId.get(getRowContentId(row)!)!;
-      const result = evaluateItem(item, resolveStatusCategory(item.statusId, item.statusName, null), TODAY);
+      const result = evaluateItem(item, resolveStatusCategory(item.statusId, item.statusName, statusMapping), TODAY);
       const startCell = getCellAt(row, startCol)!;
       const endCell = getCellAt(row, endCol)!;
       applyAlert(startCell, result.start);
