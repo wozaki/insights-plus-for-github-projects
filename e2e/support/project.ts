@@ -1,8 +1,9 @@
 // The public fixture project the e2e tests run against.
 // Setup of the charts, view and issues is documented in e2e/README.md.
 
+import type { AlertLevel } from '../../src/entrypoints/date-alerts.content/types';
+
 export const PROJECT = {
-  owner: 'wozaki',
   number: 4,
   url: 'https://github.com/users/wozaki/projects/4',
 };
@@ -19,11 +20,9 @@ export const DATE_ALERTS_VIEW = 'e2e: date alerts';
 /** Fail early when the prediction chart's custom range ends within this many days. */
 export const MIN_DAYS_UNTIL_CHART_END = 30;
 
-type Level = 'normal' | 'caution' | 'warning';
-
 export interface ExpectedAlert {
   text: string | RegExp;
-  level: Level;
+  level: AlertLevel;
 }
 
 export interface DateAlertItem {

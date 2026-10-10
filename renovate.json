@@ -55,11 +55,10 @@
       "automergeType": "pr"
     },
     {
-      "description": "E2E testing (Playwright)",
+      "description": "E2E testing (Playwright). Not automerged: the E2E check isn't required, so verify it passes first",
       "matchPackageNames": ["@playwright/test"],
       "groupName": "playwright",
-      "automerge": true,
-      "automergeType": "pr"
+      "automerge": false
     },
     {
       "description": "Node.js types follow the Node.js major used in CI (22.x)",

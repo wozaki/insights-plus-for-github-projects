@@ -29,7 +29,8 @@ function readJsonScript<T>(html: string, id: string): T {
 
 export function loadProjectPage(): Promise<ProjectPageData> {
   cached ??= (async () => {
-    const res = await fetch(`${PROJECT.url}/views/1`);
+    // The project root serves the default view, whichever views exist.
+    const res = await fetch(PROJECT.url);
     if (!res.ok) throw new Error(`GET ${PROJECT.url} failed: ${res.status}`);
     const html = await res.text();
     return {
