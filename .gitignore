@@ -42,3 +42,7 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# Playwright
+test-results/
+playwright-report/

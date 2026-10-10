@@ -196,6 +196,14 @@ Firefox 向け:
 pnpm run build:firefox
 ```
 
+### E2E テスト
+
+```bash
+pnpm e2e
+```
+
+ビルドした拡張機能を Chromium に読み込み、実際の GitHub のページで各機能を確認します。詳しくは [e2e/README.md](e2e/README.md) を参照してください。
+
 ### 配布パッケージの作成
 
 ```bash
