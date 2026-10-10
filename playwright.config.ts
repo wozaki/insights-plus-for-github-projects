@@ -4,7 +4,6 @@ import { defineConfig } from '@playwright/test';
 // See e2e/README.md.
 export default defineConfig({
   testDir: './e2e',
-  globalSetup: './e2e/global-setup.ts',
   // Tests share one live project; keep them serial to stay gentle on GitHub.
   workers: 1,
   timeout: 60_000,
@@ -16,4 +15,16 @@ export default defineConfig({
     screenshot: 'on',
     trace: 'retain-on-failure',
   },
+  projects: [
+    {
+      name: 'e2e',
+      testIgnore: /capture\//,
+    },
+    {
+      // Refreshes fixtures/github-pages for unit tests: pnpm fixtures:capture
+      name: 'capture',
+      testMatch: /capture\/.*\.ts$/,
+      use: { screenshot: 'off' },
+    },
+  ],
 });

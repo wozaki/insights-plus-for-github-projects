@@ -16,6 +16,12 @@ No token is needed: the fixture project and issues are public and the tests only
 
 Screenshots of every test are saved under `test-results/`. Pass `--headed` to watch the browser.
 
+## Page fixtures for unit tests
+
+`pnpm fixtures:capture` opens the fixture project's pages without the extension and saves the parts the extension reads (embedded JSON, list table, chart SVG) to `fixtures/github-pages/`. Unit tests named `real-page.test.ts` run the extension's readers against them.
+
+Re-capture when the e2e tests show that GitHub changed its markup, then fix the readers until the unit tests pass again. Captures are deterministic: only real page changes and the date in the header comment show up in the diff.
+
 ## CI
 
 `.github/workflows/e2e.yml` runs on pull requests, daily, and on demand. It is not a required check: a failure may come from GitHub rather than the PR. The daily run is what notices GitHub-side changes.
