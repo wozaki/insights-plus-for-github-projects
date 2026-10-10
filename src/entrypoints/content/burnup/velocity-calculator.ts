@@ -107,8 +107,8 @@ export function calculateVelocity(
     periodStartValue = startValue;
   } else {
     // Find the value at the start of the period
-    // Look for a point just before the period start, or use the first point's value
-    const pointBeforePeriod = sortedData.find(p => p.date.getTime() < periodStartDate.getTime());
+    // Look for the last point before the period start, or use the first point's value
+    const pointBeforePeriod = sortedData.findLast(p => p.date.getTime() < periodStartDate.getTime());
     if (pointBeforePeriod) {
       periodStartValue = pointBeforePeriod.value;
     } else {

@@ -4,6 +4,7 @@ import {
   extractFromColumnChart,
   extractFromSVG,
   extractDateRangeFromLabels,
+  seriesNameFromAriaLabel,
   type BurnupChartResult,
 } from '../svg-extractor';
 
@@ -309,6 +310,38 @@ describe('svg-extractor', () => {
 
     it('returns null for empty labels', () => {
       expect(extractDateRangeFromLabels([])).toBeNull();
+    });
+
+    it('treats year-less labels as the current year when later labels carry a year', () => {
+      // Today is 2026-01-28; GitHub omits the year only for the current year
+      const range = extractDateRangeFromLabels([
+        { text: 'Jan 1', x: 0 },
+        { text: 'Jan 5 2027', x: 100 },
+        { text: 'Jun 23 2027', x: 200 },
+      ]);
+      expect(range?.start).toEqual(new Date(2026, 0, 1));
+      expect(range?.end).toEqual(new Date(2027, 5, 23));
+    });
+
+    it('rolls a year-less start back a year when it would come after the end', () => {
+      const range = extractDateRangeFromLabels([
+        { text: 'Dec 1', x: 0 },
+        { text: 'Jan 15', x: 100 },
+      ]);
+      expect(range?.start).toEqual(new Date(2025, 11, 1));
+      expect(range?.end).toEqual(new Date(2026, 0, 15));
+    });
+  });
+
+  describe('seriesNameFromAriaLabel', () => {
+    it('reads the series name', () => {
+      expect(seriesNameFromAriaLabel('Open, series 1 of 4 with 515 data points.')).toBe('Open');
+      expect(seriesNameFromAriaLabel('Not planned, series 3 of 4 with 515 data points.')).toBe('Not planned');
+    });
+
+    it('returns null for other labels', () => {
+      expect(seriesNameFromAriaLabel(null)).toBeNull();
+      expect(seriesNameFromAriaLabel('Interactive chart')).toBeNull();
     });
   });
 
