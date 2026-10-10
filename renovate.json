@@ -59,7 +59,7 @@
       "automergeType": "pr"
     },
     {
-      "description": "E2E testing (Playwright). Automerged: the e2e workflow runs on the PR, and Renovate only automerges once every check (e2e included) is green",
+      "description": "E2E testing (Playwright). Automerged: the e2e workflow runs on the PR, and with top-level platformAutomerge: false Renovate only merges once every check (e2e included) is green. If platformAutomerge is turned back on, GitHub auto-merge waits only for required checks, so e2e would no longer gate",
       "matchPackageNames": ["@playwright/test"],
       "groupName": "playwright",
       "automerge": true,
@@ -82,6 +82,12 @@
       "groupName": "github-actions",
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "description": "Digest updates of pinned GitHub Actions may have no release timestamp, which minimumReleaseAge would hold indefinitely",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "minimumReleaseAge": null
     },
     {
       "description": "pnpm package manager",

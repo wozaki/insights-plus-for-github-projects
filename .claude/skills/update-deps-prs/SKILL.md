@@ -40,7 +40,8 @@ Show the user a table and propose a category for each PR:
 |---|---|---|
 | A. Ready to merge | All checks green, including the non-required `e2e`; `CLEAN`; minor or patch; no breaking changes | Step 3's browser check if it applies, then step 4 |
 | B. Needs a rebase | `BEHIND` / `DIRTY` / `UNKNOWN`, or stale check results | Step 2 |
-| C. Needs investigation | Major update, any failing check (`e2e` too), or `wxt` / `@types/chrome` / `typescript` / `playwright` | Step 3 |
+| C. Needs investigation | Major update, minor update of a 0.x package (e.g. `wxt`, `@types/chrome`), or any failing check (`e2e` too) | Step 3 |
+| E. Left to Renovate | Automergeable per `renovate.json`, no failing checks, only pending ones (e.g. `renovate/stability-days`) | No action; Renovate merges it once every check is green |
 | D. Not needed | Already on `main`, or superseded by a newer PR | Close only after the user confirms |
 
 ## 2. Ask Renovate to rebase
@@ -84,7 +85,7 @@ Renovate rebases within a few minutes and CI re-runs. Don't wait. Move on to the
 ## 4. Merge
 
 - Merge only with the user's explicit approval for each PR. One question covering several listed PRs is fine ("OK to merge #226 and #213?").
-- Re-check right before merging that all checks are green, including `e2e`. It isn't required by branch protection, but it is the only check that loads the extension in a browser, and for `playwright` updates it is the one that matters.
+- Re-check right before merging that all checks are green, including `e2e`. It isn't a required check in the `main` ruleset (only `lint-and-test (22.x)` is), but it is the only check that loads the extension in a browser.
 
 ```bash
 gh pr merge <n> --squash
