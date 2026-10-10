@@ -168,8 +168,9 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     return;
   }
 
-  // Get the target value (Open/Total at the end)
-  const targetValue = data.total;
+  // Completed is drawn on top of the series stacked beneath it (Duplicate,
+  // Not planned), so its line reaches the scope target at total + that base.
+  const targetValue = data.total + (data.completedStackBase ?? 0);
   const targetY = plotTop + toRelativeY(targetValue);
 
   // Draw current velocity line (dashed)
@@ -325,8 +326,6 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
   }
 
   // Draw scope target line (horizontal dashed line showing where Completed needs to reach)
-  // In stacked charts with Duplicate/other done-like statuses, this line sits below the Open line
-  // by the amount of those statuses, clearly indicating the completion goal.
   const scopeTargetLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   scopeTargetLine.setAttribute('x1', String(plotLeft));
   scopeTargetLine.setAttribute('y1', String(targetY));

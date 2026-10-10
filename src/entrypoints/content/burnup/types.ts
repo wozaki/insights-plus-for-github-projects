@@ -12,6 +12,8 @@ export interface BurnupChartData {
   dateRange?: DateRange;
   completedStartPixel?: PixelPoint;
   completedLastPixel?: PixelPoint;
+  /** Value of the series stacked beneath Completed (e.g. Duplicate, Not planned) */
+  completedStackBase?: number;
 }
 
 export interface VelocityResult {

@@ -29,6 +29,8 @@ interface IterationData {
 
 interface SeriesData {
   index: number;
+  name: string | null;
+  stacked: boolean;
   color: string | null;
   points: DataPoint[];
   startPixel: PixelPoint | null;
@@ -57,6 +59,8 @@ export interface BurnupChartResult {
   openData: DataPoint[];
   completedStartPixel: PixelPoint | null;
   completedLastPixel: PixelPoint | null;
+  /** Value of the series stacked beneath Completed today, i.e. where Completed's area starts. */
+  completedStackBase: number;
   dateRange: DateRange | null;
   chartInfo: {
     plotBox: PlotBox;
@@ -208,7 +212,7 @@ export function extractFromSVG(): ChartDataResult {
 
   const yMin = Math.min(...yValues.map(v => v.value));
   const yMax = Math.max(...yValues.map(v => v.value));
-  const dateRange = extractDateRangeFromLabels(xDates);
+  const dateRange = extractDateRangeFromDatePicker() ?? extractDateRangeFromLabels(xDates);
 
   const legendItems = svg.querySelectorAll('.highcharts-legend-item');
   const seriesInfo: { name: string; color: string | null; index: number }[] = [];
@@ -229,6 +233,10 @@ export function extractFromSVG(): ChartDataResult {
       seriesInfo.push({ name: text, color, index: i });
     }
   });
+
+  // Series paths are drawn inside a group translated to the plot area, so their
+  // coordinates are relative to it rather than to the SVG root.
+  const seriesBox: PlotBox = { plotLeft: 0, plotTop: 0, plotWidth: plotBox.plotWidth, plotHeight: plotBox.plotHeight };
 
   const seriesGroups = svg.querySelectorAll('.highcharts-series-group .highcharts-series');
   const seriesData: SeriesData[] = [];
@@ -251,11 +259,12 @@ export function extractFromSVG(): ChartDataResult {
 
     if (pathElement) {
       const pathD = pathElement.getAttribute('d');
-      const points = parsePathData(pathD, plotBox, dateRange, yMin, yMax);
+      const points = parsePathData(pathD, seriesBox, dateRange, yMin, yMax);
       const startPixel = extractFirstPointFromPath(pathD);
-      const lastPixel = extractLastPointFromPath(pathD, plotBox);
+      const lastPixel = extractLastPointFromPath(pathD, seriesBox);
+      const name = seriesNameFromAriaLabel(graphPath?.getAttribute('aria-label') ?? null);
 
-      seriesData.push({ index: i, color, points, startPixel, lastPixel });
+      seriesData.push({ index: i, name, stacked: areaPath !== null, color, points, startPixel, lastPixel });
     }
   });
 
@@ -264,20 +273,17 @@ export function extractFromSVG(): ChartDataResult {
   let completedStartPixel: PixelPoint | null = null;
   let completedLastPixel: PixelPoint | null = null;
 
-  for (const legend of seriesInfo) {
-    const name = legend.name.toLowerCase();
+  // Prefer the series' own accessible name: Highcharts lists stacked series in
+  // the legend in reverse order, so legend positions don't match series order.
+  let completedSeries = seriesData.find(s => isCompletedName(s.name)) ?? null;
+  let openSeries = seriesData.find(s => isOpenName(s.name)) ?? null;
 
-    if (name.includes('completed') || name.includes('完了')) {
-      const series = findSeriesByLegendIndex(seriesData, legend.index);
-      if (series) {
-        completedData = series.points;
-        completedStartPixel = series.startPixel;
-        completedLastPixel = series.lastPixel;
-      }
-    } else if (name.includes('open') || name.includes('オープン')) {
-      const series = findSeriesByLegendIndex(seriesData, legend.index);
-      if (series) {
-        openData = series.points;
+  if (!completedSeries && !openSeries) {
+    for (const legend of seriesInfo) {
+      if (isCompletedName(legend.name)) {
+        completedSeries = findSeriesByLegendIndex(seriesData, legend.index);
+      } else if (isOpenName(legend.name)) {
+        openSeries = findSeriesByLegendIndex(seriesData, legend.index);
       }
     }
   }
@@ -285,7 +291,7 @@ export function extractFromSVG(): ChartDataResult {
   const series0 = seriesData[0];
   const series1 = seriesData[1];
 
-  if (completedData.length === 0 && openData.length === 0 && series0 && series1) {
+  if (!completedSeries && !openSeries && series0 && series1) {
     const series0LastValue = series0.points.length > 0
       ? series0.points[series0.points.length - 1]!.value
       : 0;
@@ -294,38 +300,55 @@ export function extractFromSVG(): ChartDataResult {
       : 0;
 
     if (series0LastValue > series1LastValue) {
-      openData = series0.points;
-      completedData = series1.points;
-      completedStartPixel = series1.startPixel;
-      completedLastPixel = series1.lastPixel;
+      openSeries = series0;
+      completedSeries = series1;
     } else {
-      openData = series1.points;
-      completedData = series0.points;
-      completedStartPixel = series0.startPixel;
-      completedLastPixel = series0.lastPixel;
+      openSeries = series1;
+      completedSeries = series0;
     }
-  } else if (completedData.length === 0 && series0) {
-    completedData = series0.points;
-    completedStartPixel = series0.startPixel;
-    completedLastPixel = series0.lastPixel;
+  } else if (!completedSeries && series0) {
+    completedSeries = series0;
+  }
+
+  if (completedSeries) {
+    completedData = completedSeries.points;
+    completedStartPixel = completedSeries.startPixel;
+    completedLastPixel = completedSeries.lastPixel;
+  }
+  if (openSeries) {
+    openData = openSeries.points;
   }
 
   const pointValues = extractValuesFromPointMarkers(svg);
 
-  // In GitHub's burnup chart, "Open" series represents Total Scope, not remaining items
+  // Without point markers, read today's values off the paths. In a stacked
+  // chart each path is the top of its stack, so a series' own value is its top
+  // minus the top of the series stacked beneath it (the next series index).
+  const todayEnd = endOfToday();
+  const stackBaseOf = (series: SeriesData | null): number => {
+    if (!series?.stacked) return 0;
+    const beneath = seriesData.find(s => s.stacked && s.index === series.index + 1);
+    return beneath ? valueAtOrBefore(beneath.points, todayEnd) : 0;
+  };
+  const ownValueOf = (series: SeriesData | null): number =>
+    series ? Math.max(0, valueAtOrBefore(series.points, todayEnd) - stackBaseOf(series)) : 0;
+
+  const completedStackBase = stackBaseOf(completedSeries);
+
+  // "Open" is the remaining scope, so Total = Open + Completed
   let total = 0;
   let completed = 0;
 
   if (pointValues.open !== null) {
     total = pointValues.open;
-  } else if (openData.length > 0) {
-    total = Math.round(openData[openData.length - 1]!.value);
+  } else if (openSeries) {
+    total = Math.round(ownValueOf(openSeries) + ownValueOf(completedSeries));
   }
 
   if (pointValues.completed !== null) {
     completed = pointValues.completed;
-  } else if (completedData.length > 0) {
-    completed = Math.round(completedData[completedData.length - 1]!.value);
+  } else if (completedSeries) {
+    completed = Math.round(ownValueOf(completedSeries));
   }
 
   // Total = Open (remaining) + Completed
@@ -348,6 +371,7 @@ export function extractFromSVG(): ChartDataResult {
     openData,
     completedStartPixel,
     completedLastPixel,
+    completedStackBase,
     dateRange: finalDateRange,
     chartInfo: {
       plotBox,
@@ -363,6 +387,40 @@ export function extractFromSVG(): ChartDataResult {
 
 function findSeriesByLegendIndex(seriesData: SeriesData[], legendIndex: number): SeriesData | null {
   return seriesData[legendIndex] ?? null;
+}
+
+function isCompletedName(name: string | null): boolean {
+  const lower = name?.trim().toLowerCase() ?? '';
+  return lower.includes('completed') || lower.includes('完了');
+}
+
+function isOpenName(name: string | null): boolean {
+  const lower = name?.trim().toLowerCase() ?? '';
+  return lower.includes('open') || lower.includes('オープン');
+}
+
+/**
+ * Read the series name from a graph path's aria-label,
+ * e.g. "Open, series 1 of 4 with 515 data points."
+ */
+export function seriesNameFromAriaLabel(ariaLabel: string | null): string | null {
+  const match = ariaLabel?.match(/^(.+?),\s*series \d+ of \d+/i);
+  return match ? match[1]!.trim() : null;
+}
+
+function endOfToday(): Date {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return today;
+}
+
+function valueAtOrBefore(points: DataPoint[], date: Date): number {
+  let value = points[0]?.value ?? 0;
+  for (const point of points) {
+    if (point.date.getTime() > date.getTime()) break;
+    value = point.value;
+  }
+  return value;
 }
 
 /**
@@ -699,22 +757,49 @@ export function extractDateRangeFromLabels(xDates: { text: string; x: number }[]
 
   if (!firstLabel || !lastLabel) return null;
 
-  const now = new Date();
-  const endYear = lastLabel.year || now.getFullYear();
-  let startYear = firstLabel.year || endYear;
+  return resolveDateRange(firstLabel, lastLabel);
+}
 
-  if (firstLabel.month > lastLabel.month && !firstLabel.year) {
+/**
+ * Build a date range from labels that may omit the year.
+ * GitHub omits the year for dates in the current year ("Feb 1", "Jan 5 2027",
+ * "Feb 1 - Jun 30, 2027"), so a year-less date belongs to the current year,
+ * not to the year of the other end of the range.
+ */
+function resolveDateRange(
+  start: { month: number; day: number; year: number | null },
+  end: { month: number; day: number; year: number | null },
+): DateRange {
+  const currentYear = new Date().getFullYear();
+  let startYear = start.year ?? currentYear;
+  const endYear = end.year ?? currentYear;
+
+  // Two year-less dates such as "Dec 1" - "Jan 15" span the year boundary.
+  if (!start.year && new Date(startYear, start.month, start.day) > new Date(endYear, end.month, end.day)) {
     startYear = endYear - 1;
   }
 
-  const start = new Date(startYear, firstLabel.month, firstLabel.day);
-  const end = new Date(endYear, lastLabel.month, lastLabel.day);
+  return {
+    start: new Date(startYear, start.month, start.day),
+    end: new Date(endYear, end.month, end.day),
+  };
+}
 
-  return { start, end };
+/**
+ * Read the range from the custom date picker's label ("Feb 1 - Jun 30, 2027").
+ * Unlike the x-axis tick labels, it gives the exact edges of the chart.
+ * Preset periods label it "Custom range", which yields null.
+ */
+export function extractDateRangeFromDatePicker(): DateRange | null {
+  const label = document.querySelector('[class*="insight-custom-date-picker"][class*="TriggerLabel"]');
+  return label ? parseDateRangeText(label.textContent || '') : null;
 }
 
 export function extractDateRangeFromPage(): DateRange | null {
-  const pageText = document.body.innerText;
+  return parseDateRangeText(document.body.innerText);
+}
+
+function parseDateRangeText(pageText: string): DateRange | null {
 
   const jpDateRangeMatch = pageText.match(/(\d{1,2})月\s*(\d{1,2})\s*-\s*(\d{4})年(\d{1,2})月(\d{1,2})日/);
 
@@ -725,15 +810,10 @@ export function extractDateRangeFromPage(): DateRange | null {
     const endMonth = parseInt(jpDateRangeMatch[4]!, 10) - 1;
     const endDay = parseInt(jpDateRangeMatch[5]!, 10);
 
-    let startYear = endYear;
-    if (startMonth > endMonth) {
-      startYear = endYear - 1;
-    }
-
-    return {
-      start: new Date(startYear, startMonth, startDay),
-      end: new Date(endYear, endMonth, endDay),
-    };
+    return resolveDateRange(
+      { month: startMonth, day: startDay, year: null },
+      { month: endMonth, day: endDay, year: endYear },
+    );
   }
 
   const enDateRangeMatch = pageText.match(/([A-Za-z]{3})\s*(\d{1,2})(?:,?\s*(\d{4}))?\s*-\s*([A-Za-z]{3})\s*(\d{1,2})(?:,?\s*(\d{4}))?/);
@@ -751,18 +831,10 @@ export function extractDateRangeFromPage(): DateRange | null {
 
     if (startMonth === undefined || endMonth === undefined) return null;
 
-    const now = new Date();
-    const endYear = endYearMatch || now.getFullYear();
-    let startYear = startYearMatch || endYear;
-
-    if (startMonth > endMonth && !startYearMatch) {
-      startYear = endYear - 1;
-    }
-
-    return {
-      start: new Date(startYear, startMonth, startDay),
-      end: new Date(endYear, endMonth, endDay),
-    };
+    return resolveDateRange(
+      { month: startMonth, day: startDay, year: startYearMatch },
+      { month: endMonth, day: endDay, year: endYearMatch },
+    );
   }
 
   return null;
