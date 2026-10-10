@@ -12,7 +12,7 @@ Scope: the PR numbers in `$ARGUMENTS`, or every open Renovate PR if none are giv
 ## Repository context
 
 - Renovate config is `renovate.json`. PRs are grouped (`wxt`, `chrome-types`, `vitest`, `linters`, `typescript`, `test-utils`, `playwright`, `github-actions`, `pnpm`).
-- Not automerged, so they need a human: the `wxt`, `@types/chrome` and `typescript` groups, every major update, ungrouped dependencies (e.g. `web-ext`), and PRs whose body says "a matching PR was automerged previously".
+- Not automerged, so they need a human: the `wxt`, `@types/chrome`, `typescript` and `playwright` groups, every major update, ungrouped dependencies (e.g. `web-ext`), and PRs whose body says "a matching PR was automerged previously".
 - CI (`.github/workflows/ci.yml`) runs `pnpm install --frozen-lockfile` → `pnpm exec wxt prepare` → `lint` → `typecheck` → `test:run` → `build`. The `E2E` workflow runs the live browser tests and is not a required check.
 - Merges are squash merges (`chore(deps): ... (#123)`). Merged branches are deleted automatically.
 - Write commits, PR comments and PR bodies in English.
@@ -36,9 +36,9 @@ Show the user a table and propose a category for each PR:
 
 | Category | When | Next |
 |---|---|---|
-| A. Ready to merge | Checks green, `CLEAN`, minor or patch, no breaking changes | Step 3's browser check if it applies, then step 4 |
+| A. Ready to merge | All checks green, including the non-required `e2e`; `CLEAN`; minor or patch; no breaking changes | Step 3's browser check if it applies, then step 4 |
 | B. Needs a rebase | `BEHIND` / `DIRTY` / `UNKNOWN`, or stale check results | Step 2 |
-| C. Needs investigation | Major update, failing checks, or `wxt` / `@types/chrome` / `typescript` | Step 3 |
+| C. Needs investigation | Major update, any failing check (`e2e` too), or `wxt` / `@types/chrome` / `typescript` / `playwright` | Step 3 |
 | D. Not needed | Already on `main`, or superseded by a newer PR | Close only after the user confirms |
 
 ## 2. Ask Renovate to rebase
@@ -47,7 +47,7 @@ Don't rebase and force-push yourself: Renovate stops updating a branch once some
 
 ```bash
 gh pr view <n> --json body -q .body > <scratchpad>/body.md
-sed -i '' 's/- \[ \] <!-- rebase-check -->/- [x] <!-- rebase-check -->/' <scratchpad>/body.md
+perl -pi -e 's/- \[ \] <!-- rebase-check -->/- [x] <!-- rebase-check -->/' <scratchpad>/body.md
 gh pr edit <n> --body-file <scratchpad>/body.md
 ```
 
@@ -82,7 +82,7 @@ Renovate rebases within a few minutes and CI re-runs. Don't wait. Move on to the
 ## 4. Merge
 
 - Merge only with the user's explicit approval for each PR. One question covering several listed PRs is fine ("OK to merge #226 and #213?").
-- Re-check that the required checks are green right before merging.
+- Re-check right before merging that all checks are green, including `e2e`. It isn't required by branch protection, but it is the only check that loads the extension in a browser, and for `playwright` updates it is the one that matters.
 
 ```bash
 gh pr merge <n> --squash
