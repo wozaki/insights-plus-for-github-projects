@@ -12,7 +12,7 @@ pnpm exec playwright install chromium   # first time only
 pnpm e2e
 ```
 
-Before the tests run, `global-setup.ts` rewrites the Date Field Alerts fixture items so their dates are relative to today. It needs a token with the `project` and `repo` scopes: `E2E_GITHUB_TOKEN`, or your `gh` login (`gh auth refresh -s project`). Set `E2E_SKIP_SEED=1` to skip it.
+Before the tests run, `global-setup.ts` rewrites the Date Field Alerts fixture items so their dates are relative to today. It needs a token with the `project` scope: `E2E_GITHUB_TOKEN`, or your `gh` login (`gh auth refresh -s project`). The fixture issues are public, so no repository scope is needed. Set `E2E_SKIP_SEED=1` to skip it.
 
 Screenshots of every test are saved under `test-results/`. Pass `--headed` to watch the browser.
 
@@ -20,7 +20,9 @@ Screenshots of every test are saved under `test-results/`. Pass `--headed` to wa
 
 `.github/workflows/e2e.yml` runs on pull requests, daily, and on demand. It is not a required check: a failure may come from GitHub rather than the PR. The daily run is what notices GitHub-side changes.
 
-The workflow needs the repository secret `E2E_GITHUB_TOKEN`: a classic personal access token with the `project` and `repo` scopes (fine-grained tokens can't access user-owned projects).
+The workflow needs the repository secret `E2E_GITHUB_TOKEN`: a classic personal access token with only the `project` scope. Fine-grained tokens can't access projects owned by a user account yet.
+
+A classic `project` scope can write to every project its owner can. To limit the token to the fixture project, issue it from a separate machine account that is a collaborator (Write) on project 4 only.
 
 ## Fixture project setup
 

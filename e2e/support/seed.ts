@@ -1,5 +1,5 @@
 // Rewrites the Date Field Alerts fixture items in the e2e project so their
-// dates are relative to today. Needs a token with `project` and `repo` scopes.
+// dates are relative to today. Needs a token with the `project` scope; the fixture issues are public.
 
 import { execFileSync } from 'node:child_process';
 import { DATE_ALERT_ITEMS, FIXTURE_REPO, PROJECT, dateFromToday } from './project';
@@ -20,7 +20,7 @@ export function resolveToken(): string {
   try {
     return execFileSync('gh', ['auth', 'token'], { encoding: 'utf8' }).trim();
   } catch {
-    throw new Error('Set E2E_GITHUB_TOKEN (scopes: project, repo) or log in with `gh auth login -s project`.');
+    throw new Error('Set E2E_GITHUB_TOKEN (scope: project) or log in with `gh auth login -s project`.');
   }
 }
 
