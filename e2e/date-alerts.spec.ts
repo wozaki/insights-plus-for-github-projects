@@ -45,7 +45,7 @@ test('date alerts annotate list view cells after configuring the date fields', a
   for (const item of DATE_ALERT_ITEMS) {
     await test.step(item.title, async () => {
       const row = page.locator('[role="grid"] [role="row"]').filter({
-        has: page.locator('[role="rowheader"]', { hasText: item.title }),
+        has: page.locator('[role="rowheader"]').getByRole('link', { name: item.title, exact: true }),
       });
       await expect(row).toHaveCount(1);
       const cells = row.locator('[role="rowheader"], [role="rowheader"] ~ [role="gridcell"]');
