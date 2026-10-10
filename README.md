@@ -196,6 +196,14 @@ For Firefox:
 pnpm run build:firefox
 ```
 
+### E2E Tests
+
+```bash
+pnpm e2e
+```
+
+Loads the built extension into Chromium and checks each feature on live GitHub pages. See [e2e/README.md](e2e/README.md).
+
 ### Create Distribution Package
 
 ```bash
