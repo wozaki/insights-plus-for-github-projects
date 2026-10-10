@@ -18,7 +18,8 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "e2e": "playwright test",
+    "e2e": "playwright test --project e2e",
+    "fixtures:capture": "playwright test --project capture",
     "clean": "rm -rf .output dist",
     "prepare": "husky",
     "lint-staged": "lint-staged"

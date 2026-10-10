@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { test as base, chromium, type BrowserContext } from '@playwright/test';
 
@@ -7,6 +8,9 @@ const EXTENSION_DIR = path.resolve(import.meta.dirname, '../../.output/chrome-mv
 // honors --load-extension (branded Chrome dropped it), in headless mode too.
 export const test = base.extend<{ context: BrowserContext }>({
   context: async ({ headless }, use) => {
+    if (!existsSync(path.join(EXTENSION_DIR, 'manifest.json'))) {
+      throw new Error('Extension build not found. Run `pnpm run build` before `pnpm e2e`.');
+    }
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       headless,
