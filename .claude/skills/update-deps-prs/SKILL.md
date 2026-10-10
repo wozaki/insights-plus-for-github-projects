@@ -12,8 +12,10 @@ Scope: the PR numbers in `$ARGUMENTS`, or every open Renovate PR if none are giv
 ## Repository context
 
 - Renovate config is `renovate.json`. PRs are grouped (`wxt`, `chrome-types`, `vitest`, `linters`, `typescript`, `test-utils`, `playwright`, `github-actions`, `pnpm`).
-- Not automerged, so they need a human: the `wxt`, `@types/chrome`, `typescript` and `playwright` groups, every major update, ungrouped dependencies (e.g. `web-ext`), and PRs whose body says "a matching PR was automerged previously".
-- CI (`.github/workflows/ci.yml`) runs `pnpm install --frozen-lockfile` → `pnpm exec wxt prepare` → `lint` → `typecheck` → `test:run` → `build`. The `E2E` workflow runs the live browser tests and is not a required check.
+- Renovate automerges the other minor/patch PRs once every check (the `E2E` workflow included) is green. Not automerged, so they need a human: every major update, minor updates of 0.x packages (e.g. `wxt` 0.21 → 0.22, `@types/chrome` 0.3 → 0.4), ungrouped dependencies that have no rule in `renovate.json`, and PRs whose body says "a matching PR was automerged previously". If an automergeable PR is still open, look at its failing or pending checks.
+- `minimumReleaseAge` is `3 days`: Renovate adds a pending `renovate/stability-days` check until the release is 3 days old, and won't automerge before then. A PR that is only waiting on that check needs no action.
+- Automerged updates get no per-PR human review. Instead, the extension is checked manually before each release with the `verify-extension` skill.
+- CI (`.github/workflows/ci.yml`) runs `pnpm install --frozen-lockfile` → `pnpm exec wxt prepare` → `lint` → `typecheck` → `test:run` → `build`. The `E2E` workflow runs the live browser tests on every PR and daily. It isn't a required check, but Renovate only automerges once every check, E2E included, is green.
 - Merges are squash merges (`chore(deps): ... (#123)`). Merged branches are deleted automatically.
 - Write commits, PR comments and PR bodies in English.
 

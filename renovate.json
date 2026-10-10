@@ -7,6 +7,7 @@
   ],
   "labels": ["dependencies"],
   "rangeStrategy": "auto",
+  "minimumReleaseAge": "3 days",
   "platformAutomerge": true,
   "postUpdateOptions": ["pnpmDedupe"],
   "packageRules": [
@@ -14,13 +15,15 @@
       "description": "WXT framework (core build tool)",
       "matchPackageNames": ["wxt"],
       "groupName": "wxt",
-      "automerge": false
+      "automerge": true,
+      "automergeType": "pr"
     },
     {
       "description": "Chrome extension type definitions",
       "matchPackageNames": ["@types/chrome"],
       "groupName": "chrome-types",
-      "automerge": false
+      "automerge": true,
+      "automergeType": "pr"
     },
     {
       "description": "Testing tools (vitest)",
@@ -45,7 +48,8 @@
       "description": "TypeScript (tsc via @typescript/native, TS 6 API via @typescript/typescript6)",
       "matchPackageNames": ["typescript", "@typescript/typescript6"],
       "groupName": "typescript",
-      "automerge": false
+      "automerge": true,
+      "automergeType": "pr"
     },
     {
       "description": "Test utilities",
@@ -55,10 +59,17 @@
       "automergeType": "pr"
     },
     {
-      "description": "E2E testing (Playwright). Not automerged: the E2E check isn't required, so verify it passes first",
+      "description": "E2E testing (Playwright). Automerged: the e2e workflow runs on the PR, and Renovate only automerges once every check (e2e included) is green",
       "matchPackageNames": ["@playwright/test"],
       "groupName": "playwright",
-      "automerge": false
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "web-ext (used by WXT to run the extension in a browser)",
+      "matchPackageNames": ["web-ext"],
+      "automerge": true,
+      "automergeType": "pr"
     },
     {
       "description": "Node.js types follow the Node.js major used in CI (22.x)",
@@ -78,6 +89,12 @@
       "groupName": "pnpm",
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "description": "Do not automerge minor updates of 0.x packages (e.g. @types/chrome 0.2 -> 0.3, wxt 0.21 -> 0.22): a 0.x minor bump can be breaking. matchCurrentVersion uses the locked version, so it works with range specifiers like ^0.3.0",
+      "matchCurrentVersion": "<1.0.0",
+      "matchUpdateTypes": ["minor"],
+      "automerge": false
     },
     {
       "description": "Do not automerge major version updates",
