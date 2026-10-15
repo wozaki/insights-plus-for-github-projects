@@ -4,7 +4,7 @@
 // reused (idempotent) so repeated re-render passes never duplicate annotations.
 //
 // Placement: GitHub renders a filled date inside a fixed-height, vertically
-// centered flex container ("date-renderer-module__BaseCell"). We append the
+// centered flex container (the cell's "BaseCell" child). We append the
 // annotation *inside* that container so it sits inline next to the date and
 // reads as belonging to it. Empty cells (Missing alerts) have no such container,
 // so we fall back to the grid cell itself.
@@ -14,7 +14,10 @@ import type { CellAlert } from './types';
 /** Attribute marking our injected element; value is the alert type. */
 export const MARKER_ATTR = 'data-insights-plus-date-alert';
 const BASE_CLASS = 'iplus-date-alert';
-const DATE_CONTAINER_SELECTOR = '[class*="date-renderer-module__BaseCell"]';
+// Matches both `date-renderer-module__BaseCell__<hash>` and, since GitHub dropped
+// the module prefix, `BaseCell__<hash>`. Other renderers also use a BaseCell, so
+// only look at the grid cell's direct child.
+const DATE_CONTAINER_SELECTOR = ':scope > [class*="BaseCell"]';
 
 /**
  * Apply (or clear) the annotation for a cell.

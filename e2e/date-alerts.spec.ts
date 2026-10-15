@@ -9,7 +9,7 @@ const ALERT = '[data-insights-plus-date-alert]';
 // and a row's cells are its Title rowheader followed by the sibling gridcells.
 async function columnIndex(page: Page, name: string): Promise<number> {
   const texts = await page
-    .locator('[role="grid"] [role="columnheader"] [class*="table-header-cell-module__Text"]')
+    .locator('[role="grid"] [role="columnheader"] [class*="textContainer"]')
     .allInnerTexts();
   const index = texts.findIndex((t) => t.trim() === name);
   expect(index, `column "${name}" in view "${DATE_ALERTS_VIEW}"`).toBeGreaterThanOrEqual(0);

@@ -77,7 +77,7 @@ test('capture list view', async ({ page }) => {
       const text = document.getElementById(id)?.textContent;
       return text ? `<script type="application/json" id="${id}">${text}</script>` : `missing #${id}`;
     });
-    const table = document.querySelector('[role="grid"]')?.closest('[class*="table-module__tableRoot"]');
+    const table = document.querySelector('[role="grid"]')?.closest('[class*="tableRoot"]');
     const clone = table?.cloneNode(true);
     if (!(clone instanceof Element)) return [...json, 'missing table root'];
     clone.querySelectorAll('script, style').forEach((el) => el.remove());

@@ -113,6 +113,6 @@ describe('date alerts on a real list view', () => {
     applyAlert(cell, { type: 'age', text: 'Age 282d', level: 'warning' });
 
     const alert = cell.querySelector('[data-insights-plus-date-alert]')!;
-    expect(alert.parentElement?.className).toMatch(/date-renderer-module__BaseCell/);
+    expect(alert.parentElement?.className).toMatch(/BaseCell/);
   });
 });
