@@ -21,7 +21,7 @@ function makeDateCell(): { cell: HTMLElement; container: HTMLElement } {
   const cell = document.createElement('div');
   cell.setAttribute('role', 'gridcell');
   const container = document.createElement('div');
-  container.className = 'date-renderer-module__BaseCell__lSqQP base-cell-module__Box';
+  container.className = 'BaseCell__B75CLe Box__XbovWY';
   const date = document.createElement('span');
   date.textContent = 'Jul 19, 2026';
   container.appendChild(date);
@@ -89,7 +89,7 @@ describe('applyAlert', () => {
 
     // Cell later renders a date container (e.g. user filled the date in).
     const container = document.createElement('div');
-    container.className = 'date-renderer-module__BaseCell__x';
+    container.className = 'BaseCell__x';
     container.appendChild(document.createTextNode('Jul 19, 2026'));
     cell.appendChild(container);
 
