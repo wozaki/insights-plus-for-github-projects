@@ -2,6 +2,9 @@
 // Responsibility: locate the GitHub Projects list-view grid and map columns/rows
 // to the DOM cells that annotations attach to. Uses role attributes (stable) and
 // only substring class matches where unavoidable (GitHub hashes CSS class names).
+// Class matches use the local CSS-module name only: GitHub used to prefix it
+// with the module file (`table-module__tableRoot__<hash>`) but dropped the
+// prefix in October 2026 (`tableRoot__<hash>`).
 
 import type { DateFieldOption } from './types';
 
@@ -16,19 +19,19 @@ export function getGrid(doc: Document = document): HTMLElement | null {
 }
 
 /**
- * The list-view table root ancestor of the grid, or null when the grid
+ * The list-view table root (the grid itself or an ancestor), or null when the grid
  * belongs to a different layout that happens to also render a
  * `[role="grid"]` (e.g. Roadmap). This feature's cell annotations only make
  * sense in the table layout, so callers should treat a null result as "not
  * the list view" rather than falling back to the grid itself.
  */
 export function getTableRoot(grid: HTMLElement): HTMLElement | null {
-  return grid.closest<HTMLElement>('[class*="table-module__tableRoot"]');
+  return grid.closest<HTMLElement>('[class*="tableRoot"]');
 }
 
 /** Clean field name shown in a column header (e.g. "Start on"). */
 export function getColumnName(header: Element): string | null {
-  const textEl = header.querySelector('[class*="table-header-cell-module__Text"]');
+  const textEl = header.querySelector('[class*="textContainer"]');
   if (textEl?.textContent) return textEl.textContent.trim();
 
   // Fallback: the tooltip reads "<name> column options"; strip the suffix.

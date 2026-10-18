@@ -26,7 +26,7 @@ function buildGrid(rows: Array<{ contentId?: number; values: string[] }>): HTMLE
     const header = document.createElement('div');
     header.setAttribute('role', 'columnheader');
     const text = document.createElement('span');
-    text.className = 'table-header-cell-module__Text__ABCDE';
+    text.className = 'textContainer__ABCDE';
     text.textContent = name;
     const tooltip = document.createElement('span');
     tooltip.className = 'prc-TooltipV2-Tooltip-xyz';
@@ -79,7 +79,13 @@ describe('getGrid', () => {
 });
 
 describe('getTableRoot', () => {
-  it('finds the table root ancestor (list/table layout)', () => {
+  it('finds the table root on the grid itself (list/table layout)', () => {
+    const grid = buildGrid([]);
+    grid.className = 'tableRoot__GKR8wt gridLines__CO1x1q';
+    expect(getTableRoot(grid)).toBe(grid);
+  });
+
+  it('finds a module-prefixed table root ancestor (older markup)', () => {
     const grid = buildGrid([]);
     const tableRoot = document.createElement('div');
     tableRoot.className = 'table-module__tableRoot__abc123';
