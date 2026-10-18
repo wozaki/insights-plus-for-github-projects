@@ -791,7 +791,9 @@ function resolveDateRange(
  * Preset periods label it "Custom range", which yields null.
  */
 export function extractDateRangeFromDatePicker(): DateRange | null {
-  const label = document.querySelector('[class*="insight-custom-date-picker"][class*="TriggerLabel"]');
+  // Match the local CSS-module names only: GitHub dropped the module-file prefix
+  // (`insight-custom-date-picker-module__TriggerLabel__<hash>` -> `TriggerLabel__<hash>`).
+  const label = document.querySelector('[class*="DatePickerContainer"] [class*="TriggerLabel"]');
   return label ? parseDateRangeText(label.textContent || '') : null;
 }
 
