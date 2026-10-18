@@ -168,8 +168,11 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     return;
   }
 
-  // Get the target value (Open/Total at the end)
-  const targetValue = data.total;
+  // Completed values are its own, but the chart draws Completed on top of the
+  // series stacked beneath it (Duplicate, Not planned). Shift by that base so
+  // the overlay lines up with the chart's Completed line.
+  const stackBase = data.completedStackBase ?? 0;
+  const targetValue = data.total + stackBase;
   const targetY = plotTop + toRelativeY(targetValue);
 
   // Draw current velocity line (dashed)
@@ -180,9 +183,9 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     
     // Calculate coordinates for the period start and end points
     const periodStartX = plotLeft + toRelativeX(velocity.periodStartDate);
-    const periodStartY = plotTop + toRelativeY(velocity.periodStartValue);
+    const periodStartY = plotTop + toRelativeY(velocity.periodStartValue + stackBase);
     const periodEndX = plotLeft + toRelativeX(velocity.periodEndDate);
-    const periodEndY = plotTop + toRelativeY(velocity.periodEndValue);
+    const periodEndY = plotTop + toRelativeY(velocity.periodEndValue + stackBase);
     
     // Calculate slope from the period
     const deltaX = periodEndX - periodStartX;
@@ -260,7 +263,7 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     startY = plotTop + data.completedStartPixel.y;
   } else {
     startX = plotLeft + toRelativeX(firstCompletedPoint.date);
-    startY = plotTop + toRelativeY(firstCompletedPoint.value);
+    startY = plotTop + toRelativeY(firstCompletedPoint.value + stackBase);
   }
 
   // Draw ideal velocity line
@@ -325,8 +328,6 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
   }
 
   // Draw scope target line (horizontal dashed line showing where Completed needs to reach)
-  // In stacked charts with Duplicate/other done-like statuses, this line sits below the Open line
-  // by the amount of those statuses, clearly indicating the completion goal.
   const scopeTargetLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   scopeTargetLine.setAttribute('x1', String(plotLeft));
   scopeTargetLine.setAttribute('y1', String(targetY));

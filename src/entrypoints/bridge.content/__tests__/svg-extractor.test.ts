@@ -4,6 +4,7 @@ import {
   extractFromColumnChart,
   extractFromSVG,
   extractDateRangeFromLabels,
+  seriesNameFromAriaLabel,
   type BurnupChartResult,
 } from '../svg-extractor';
 
@@ -291,6 +292,122 @@ describe('svg-extractor', () => {
     });
   });
 
+  describe('extractFromSVG (stacked series)', () => {
+    // Plot area 300x300 for 0..30 over Jan 1 - Jan 31; series paths are
+    // relative to the plot area, so y = 300 - value * 10.
+    interface StackedSeries {
+      name: string | null;
+      /** [day of January, value] pairs of the series' stack top */
+      points: Array<[number, number]>;
+      hidden?: boolean;
+    }
+
+    function renderStackedChart(series: StackedSeries[], legend: boolean): void {
+      const xOf = (day: number) => ((day - 1) / 30) * 300;
+      const groups = series.map((s, i) => {
+        const d = s.points.map(([day, value], j) => `${j === 0 ? 'M' : 'L'} ${xOf(day)} ${300 - value * 10}`).join(' ');
+        const label = s.name ? ` aria-label="${s.name}, series ${i + 1} of ${series.length} with ${s.points.length} data points."` : '';
+        const visibility = s.hidden ? ' visibility="hidden"' : '';
+        return `<g class="highcharts-series highcharts-series-${i} highcharts-areaspline-series"${visibility}>
+          <path class="highcharts-area" d="${d} L 300 300 L 0 300 Z"></path>
+          <path class="highcharts-graph" d="${d}"${label}></path>
+        </g>`;
+      });
+      // Highcharts lists stacked series in the legend in reverse order
+      const legendItems = legend
+        ? series.map((s, i) => `<g class="highcharts-legend-item highcharts-series-${i}"><text>${s.name}</text></g>`).reverse().join('')
+        : '';
+      document.body.innerHTML = `<svg class="highcharts-root">
+        <rect class="highcharts-plot-background" x="50" y="10" width="300" height="300"></rect>
+        <g class="highcharts-xaxis-labels"><text x="50">Jan 1</text><text x="350">Jan 31</text></g>
+        <g class="highcharts-yaxis-labels"><text y="310">0</text><text y="10">30</text></g>
+        <g class="highcharts-legend">${legendItems}</g>
+        <g class="highcharts-series-group">${groups.join('')}</g>
+      </svg>`;
+    }
+
+    function extract(): BurnupChartResult {
+      const result = extractFromSVG();
+      if (result?.chartType !== 'burnup') throw new Error('expected a burnup result');
+      return result;
+    }
+
+    // Today is 2026-01-28 (see beforeEach)
+    const open = { name: 'Open', points: [[1, 0], [20, 20], [31, 20]] } as StackedSeries;
+    const completed = { name: 'Completed', points: [[1, 0], [10, 5], [20, 10], [31, 10]] } as StackedSeries;
+    const notPlanned = { name: 'Not planned', points: [[1, 0], [20, 4], [31, 4]] } as StackedSeries;
+    const duplicate = { name: 'Duplicate', points: [[1, 0], [20, 2], [31, 2]] } as StackedSeries;
+
+    it('subtracts the series stacked beneath Completed from its values', () => {
+      renderStackedChart([open, completed, notPlanned, duplicate], true);
+      const result = extract();
+      // Tops: Open 20, Completed 10, Not planned 4, Duplicate 2
+      expect(result.completed).toBe(6);
+      expect(result.total).toBe(16);
+      expect(result.completedStackBase).toBeCloseTo(4, 5);
+    });
+
+    it('does not count closures beneath Completed as completed progress', () => {
+      // Completed's own value stays 5 while Duplicate grows from 0 to 3
+      renderStackedChart([
+        { name: 'Open', points: [[1, 10], [31, 10]] },
+        { name: 'Completed', points: [[1, 5], [15, 5], [20, 8], [31, 8]] },
+        { name: 'Duplicate', points: [[1, 0], [15, 0], [20, 3], [31, 3]] },
+      ], true);
+      const result = extract();
+      expect(result.completed).toBe(5);
+      expect(result.completedData.at(-1)?.value).toBeCloseTo(5, 5);
+      expect(Math.max(...result.completedData.map(p => p.value))).toBeCloseTo(5, 5);
+    });
+
+    it('skips series hidden from the legend when finding the stack base', () => {
+      // Not planned is hidden: Highcharts restacks Completed on Duplicate,
+      // but the hidden group keeps its stale path
+      renderStackedChart([
+        { name: 'Open', points: [[1, 0], [20, 18], [31, 18]] },
+        { name: 'Completed', points: [[1, 0], [20, 8], [31, 8]] },
+        { ...notPlanned, hidden: true },
+        duplicate,
+      ], true);
+      const result = extract();
+      expect(result.completedStackBase).toBeCloseTo(2, 5);
+      expect(result.completed).toBe(6);
+      expect(result.total).toBe(16);
+    });
+
+    it('treats a missing Completed series as nothing completed', () => {
+      // GitHub omits series without data, and shows no legend for a single series
+      renderStackedChart([{ name: 'Open', points: [[1, 0], [20, 5], [31, 5]] }], false);
+      const result = extract();
+      expect(result.completed).toBe(0);
+      expect(result.total).toBe(5);
+      expect(result.completedData.every(p => p.value === 0)).toBe(true);
+      expect(result.completedStackBase).toBe(0);
+    });
+
+    it('treats a lone unnamed series as the remaining scope', () => {
+      renderStackedChart([{ name: null, points: [[1, 15], [31, 15]] }], false);
+      const result = extract();
+      expect(result.completed).toBe(0);
+      expect(result.total).toBe(15);
+    });
+
+    it('matches legend items to series by series number when series are unnamed', () => {
+      renderStackedChart([
+        { ...open, name: null },
+        { ...completed, name: null },
+        { ...notPlanned, name: null },
+        { ...duplicate, name: null },
+      ], false);
+      document.querySelector('.highcharts-legend')!.innerHTML = ['Duplicate', 'Not planned', 'Completed', 'Open']
+        .map((name, i) => `<g class="highcharts-legend-item highcharts-series-${3 - i}"><text>${name}</text></g>`)
+        .join('');
+      const result = extract();
+      expect(result.completed).toBe(6);
+      expect(result.total).toBe(16);
+    });
+  });
+
   describe('extractDateRangeFromLabels', () => {
     it('handles Japanese date format', () => {
       const xDates = [
@@ -309,6 +426,38 @@ describe('svg-extractor', () => {
 
     it('returns null for empty labels', () => {
       expect(extractDateRangeFromLabels([])).toBeNull();
+    });
+
+    it('treats year-less labels as the current year when later labels carry a year', () => {
+      // Today is 2026-01-28; GitHub omits the year only for the current year
+      const range = extractDateRangeFromLabels([
+        { text: 'Jan 1', x: 0 },
+        { text: 'Jan 5 2027', x: 100 },
+        { text: 'Jun 23 2027', x: 200 },
+      ]);
+      expect(range?.start).toEqual(new Date(2026, 0, 1));
+      expect(range?.end).toEqual(new Date(2027, 5, 23));
+    });
+
+    it('rolls a year-less start back a year when it would come after the end', () => {
+      const range = extractDateRangeFromLabels([
+        { text: 'Dec 1', x: 0 },
+        { text: 'Jan 15', x: 100 },
+      ]);
+      expect(range?.start).toEqual(new Date(2025, 11, 1));
+      expect(range?.end).toEqual(new Date(2026, 0, 15));
+    });
+  });
+
+  describe('seriesNameFromAriaLabel', () => {
+    it('reads the series name', () => {
+      expect(seriesNameFromAriaLabel('Open, series 1 of 4 with 515 data points.')).toBe('Open');
+      expect(seriesNameFromAriaLabel('Not planned, series 3 of 4 with 515 data points.')).toBe('Not planned');
+    });
+
+    it('returns null for other labels', () => {
+      expect(seriesNameFromAriaLabel(null)).toBeNull();
+      expect(seriesNameFromAriaLabel('Interactive chart')).toBeNull();
     });
   });
 

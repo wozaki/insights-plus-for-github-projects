@@ -151,6 +151,26 @@ describe('velocity-calculator', () => {
       vi.useRealTimers();
     });
 
+    it('starts the period from the last point before it, not the first one', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-02-01'));
+
+      const completedData: DataPoint[] = [
+        { date: new Date('2024-01-01'), value: 0 },
+        { date: new Date('2024-01-10'), value: 40 },
+        { date: new Date('2024-01-24'), value: 40 },
+        { date: new Date('2024-01-25'), value: 40 },
+        { date: new Date('2024-01-30'), value: 40 },
+      ];
+
+      // No progress within the last 14 days: velocity must not count the 0 -> 40 jump from January 1st
+      const result = calculateVelocity(completedData, new Date('2024-01-01'), 0, 14);
+      expect(result.current).toBeNull();
+      expect(result.periodStartValue).toBe(40);
+
+      vi.useRealTimers();
+    });
+
     it('falls back to all-time average when lookback period has insufficient data', () => {
       const today = new Date('2024-02-01');
       const startDate = new Date('2024-01-01');

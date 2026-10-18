@@ -80,6 +80,8 @@ export async function initializeBurnup(): Promise<void> {
     const updatedData = await injectBridgeScript();
     if (updatedData && updatedData.chartType === 'burnup' && updatedData.chartInfo) {
       chartData.chartInfo = updatedData.chartInfo;
+      // Hiding a series from the legend restacks the chart
+      chartData.completedStackBase = updatedData.completedStackBase;
       await recalculate();
     }
   }
@@ -110,20 +112,11 @@ export async function initializeBurnup(): Promise<void> {
   createStatsPanel(burnupData);
 
   startDate = new Date(burnupData.chartInfo?.axes?.xMin || burnupData.dateRange?.start || Date.now());
-  startValue = 0;
-  
-  if (burnupData.completedStartPixel && burnupData.chartInfo?.plotBox && burnupData.chartInfo?.axes) {
-    const { plotHeight } = burnupData.chartInfo.plotBox;
-    const { yMin, yMax } = burnupData.chartInfo.axes;
-    // completedStartPixel.y is relative to the series group, so plotTop is not needed
-    const ratio = (plotHeight - burnupData.completedStartPixel.y) / plotHeight;
-    startValue = yMin + ratio * (yMax - yMin);
-  } else if (burnupData.completedData && burnupData.completedData.length > 0) {
-    const sortedData = [...burnupData.completedData]
-      .map(p => ({ date: new Date(p.date), value: p.value }))
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-    startValue = sortedData[0]!.value;
-  }
+  // completedData holds Completed's own values, so its first point is the start value
+  const sortedData = [...burnupData.completedData]
+    .map(p => ({ date: new Date(p.date), value: p.value }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+  startValue = sortedData[0]?.value ?? 0;
 
   await recalculate();
 
