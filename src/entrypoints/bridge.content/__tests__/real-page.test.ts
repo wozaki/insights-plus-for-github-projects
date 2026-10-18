@@ -66,13 +66,24 @@ describe('burnup chart (real page)', () => {
     expect(result.chartInfo?.plotBox.plotHeight).toBeGreaterThan(0);
   });
 
-  // Known bug: x-axis labels carry a year only from the next year on
-  // ("Dec 28", "Jan 12 2027"), and the year-less labels are assigned the
-  // last label's year, shifting the range to 2027-01-31..2027-06-25. The
-  // wrong range also skews the extracted totals. Flip to `it` once fixed.
-  it.fails('reads the date range across a year boundary', () => {
+  it('reads the date range across a year boundary', () => {
     const result = extractBurnup();
     expect(result.dateRange?.start).toEqual(new Date(2026, 1, 1));
     expect(result.dateRange?.end).toEqual(new Date(2027, 5, 30));
+  });
+
+  // Expected values are the project's Release milestone (Sum of Estimate):
+  // Completed 42, Open 15, and Duplicate 3 + Not planned 2 stacked beneath Completed.
+  it('reads today\'s completed and total values from the stacked series', () => {
+    const result = extractBurnup();
+    expect(result.completed).toBe(42);
+    expect(result.total).toBe(57);
+    expect(result.completedStackBase).toBeCloseTo(5, 0);
+  });
+
+  it('reads the Completed series by name, not by legend position', () => {
+    const result = extractBurnup();
+    expect(result.completedData.at(-1)?.value).toBeCloseTo(47, 0);
+    expect(result.openData.at(-1)?.value).toBeCloseTo(62, 0);
   });
 });
