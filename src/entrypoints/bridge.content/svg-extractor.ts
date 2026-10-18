@@ -29,8 +29,11 @@ interface IterationData {
 
 interface SeriesData {
   index: number;
+  /** N of the group's `highcharts-series-N` class, shared with its legend item */
+  seriesNumber: number | null;
   name: string | null;
   stacked: boolean;
+  hidden: boolean;
   color: string | null;
   points: DataPoint[];
   startPixel: PixelPoint | null;
@@ -215,7 +218,7 @@ export function extractFromSVG(): ChartDataResult {
   const dateRange = extractDateRangeFromDatePicker() ?? extractDateRangeFromLabels(xDates);
 
   const legendItems = svg.querySelectorAll('.highcharts-legend-item');
-  const seriesInfo: { name: string; color: string | null; index: number }[] = [];
+  const seriesInfo: { name: string; color: string | null; index: number; seriesNumber: number | null }[] = [];
 
   legendItems.forEach((item, i) => {
     const text = (item.textContent || '').trim();
@@ -230,7 +233,7 @@ export function extractFromSVG(): ChartDataResult {
     }
 
     if (text) {
-      seriesInfo.push({ name: text, color, index: i });
+      seriesInfo.push({ name: text, color, index: i, seriesNumber: seriesNumberOf(item) });
     }
   });
 
@@ -264,7 +267,18 @@ export function extractFromSVG(): ChartDataResult {
       const lastPixel = extractLastPointFromPath(pathD, seriesBox);
       const name = seriesNameFromAriaLabel(graphPath?.getAttribute('aria-label') ?? null);
 
-      seriesData.push({ index: i, name, stacked: areaPath !== null, color, points, startPixel, lastPixel });
+      seriesData.push({
+        index: i,
+        seriesNumber: seriesNumberOf(group),
+        name,
+        stacked: areaPath !== null,
+        // A series hidden from the legend keeps its stale path
+        hidden: group.getAttribute('visibility') === 'hidden',
+        color,
+        points,
+        startPixel,
+        lastPixel,
+      });
     }
   });
 
@@ -273,17 +287,18 @@ export function extractFromSVG(): ChartDataResult {
   let completedStartPixel: PixelPoint | null = null;
   let completedLastPixel: PixelPoint | null = null;
 
-  // Prefer the series' own accessible name: Highcharts lists stacked series in
-  // the legend in reverse order, so legend positions don't match series order.
+  // Prefer the series' own accessible name. Otherwise match legend items by
+  // their series number: Highcharts lists stacked series in the legend in
+  // reverse order, so legend positions don't match series order.
   let completedSeries = seriesData.find(s => isCompletedName(s.name)) ?? null;
   let openSeries = seriesData.find(s => isOpenName(s.name)) ?? null;
 
   if (!completedSeries && !openSeries) {
     for (const legend of seriesInfo) {
       if (isCompletedName(legend.name)) {
-        completedSeries = findSeriesByLegendIndex(seriesData, legend.index);
+        completedSeries = findSeriesByLegend(seriesData, legend);
       } else if (isOpenName(legend.name)) {
-        openSeries = findSeriesByLegendIndex(seriesData, legend.index);
+        openSeries = findSeriesByLegend(seriesData, legend);
       }
     }
   }
@@ -292,6 +307,7 @@ export function extractFromSVG(): ChartDataResult {
   const series1 = seriesData[1];
 
   if (!completedSeries && !openSeries && series0 && series1) {
+    // Unnamed series: in a stacked burnup, Open is drawn on top
     const series0LastValue = series0.points.length > 0
       ? series0.points[series0.points.length - 1]!.value
       : 0;
@@ -306,49 +322,61 @@ export function extractFromSVG(): ChartDataResult {
       openSeries = series1;
       completedSeries = series0;
     }
-  } else if (!completedSeries && series0) {
-    completedSeries = series0;
+  } else if (!completedSeries && !openSeries && series0) {
+    // GitHub omits series without data, so a lone unnamed series is the
+    // remaining scope (nothing has been completed in the range yet).
+    openSeries = series0;
   }
 
+  // In a stacked chart each path is the top of its stack, so a series' own
+  // value is its top minus the top of the nearest visible series beneath it
+  // (the next series index).
+  const todayEnd = endOfToday();
+  const seriesBeneath = (series: SeriesData): SeriesData | null => {
+    if (!series.stacked) return null;
+    return seriesData.find(s => s.stacked && !s.hidden && s.index > series.index) ?? null;
+  };
+  const stackBaseAt = (series: SeriesData | null, date: Date): number => {
+    const beneath = series ? seriesBeneath(series) : null;
+    return beneath ? valueAtOrBefore(beneath.points, date) : 0;
+  };
+  const ownPointsOf = (series: SeriesData): DataPoint[] =>
+    series.points.map(p => ({ date: p.date, value: Math.max(0, p.value - stackBaseAt(series, p.date)) }));
+
+  // Completed's own values, so that closing issues as Duplicate or Not planned
+  // (stacked beneath it) doesn't count as progress.
   if (completedSeries) {
-    completedData = completedSeries.points;
+    completedData = ownPointsOf(completedSeries);
     completedStartPixel = completedSeries.startPixel;
     completedLastPixel = completedSeries.lastPixel;
+  } else if (openSeries) {
+    // No Completed series: nothing has been completed yet
+    completedData = openSeries.points.map(p => ({ date: p.date, value: 0 }));
   }
   if (openSeries) {
-    openData = openSeries.points;
+    openData = ownPointsOf(openSeries);
   }
+
+  const completedStackBase = stackBaseAt(completedSeries ?? openSeries, todayEnd);
 
   const pointValues = extractValuesFromPointMarkers(svg);
 
-  // Without point markers, read today's values off the paths. In a stacked
-  // chart each path is the top of its stack, so a series' own value is its top
-  // minus the top of the series stacked beneath it (the next series index).
-  const todayEnd = endOfToday();
-  const stackBaseOf = (series: SeriesData | null): number => {
-    if (!series?.stacked) return 0;
-    const beneath = seriesData.find(s => s.stacked && s.index === series.index + 1);
-    return beneath ? valueAtOrBefore(beneath.points, todayEnd) : 0;
-  };
-  const ownValueOf = (series: SeriesData | null): number =>
-    series ? Math.max(0, valueAtOrBefore(series.points, todayEnd) - stackBaseOf(series)) : 0;
-
-  const completedStackBase = stackBaseOf(completedSeries);
-
   // "Open" is the remaining scope, so Total = Open + Completed
+  const completedToday = valueAtOrBefore(completedData, todayEnd);
+  const openToday = valueAtOrBefore(openData, todayEnd);
   let total = 0;
   let completed = 0;
 
   if (pointValues.open !== null) {
     total = pointValues.open;
-  } else if (openSeries) {
-    total = Math.round(ownValueOf(openSeries) + ownValueOf(completedSeries));
+  } else if (openSeries || completedSeries) {
+    total = Math.round(openToday + completedToday);
   }
 
   if (pointValues.completed !== null) {
     completed = pointValues.completed;
-  } else if (completedSeries) {
-    completed = Math.round(ownValueOf(completedSeries));
+  } else {
+    completed = Math.round(completedToday);
   }
 
   // Total = Open (remaining) + Completed
@@ -385,8 +413,19 @@ export function extractFromSVG(): ChartDataResult {
   };
 }
 
-function findSeriesByLegendIndex(seriesData: SeriesData[], legendIndex: number): SeriesData | null {
-  return seriesData[legendIndex] ?? null;
+function findSeriesByLegend(
+  seriesData: SeriesData[],
+  legend: { index: number; seriesNumber: number | null },
+): SeriesData | null {
+  if (legend.seriesNumber !== null) {
+    return seriesData.find(s => s.seriesNumber === legend.seriesNumber) ?? null;
+  }
+  return seriesData[legend.index] ?? null;
+}
+
+function seriesNumberOf(element: Element): number | null {
+  const match = (element.getAttribute('class') || '').match(/(?:^|\s)highcharts-series-(\d+)(?:\s|$)/);
+  return match ? parseInt(match[1]!, 10) : null;
 }
 
 function isCompletedName(name: string | null): boolean {

@@ -81,9 +81,10 @@ describe('burnup chart (real page)', () => {
     expect(result.completedStackBase).toBeCloseTo(5, 0);
   });
 
-  it('reads the Completed series by name, not by legend position', () => {
+  it('reads each series\' own values, not the stack top or the legend position', () => {
     const result = extractBurnup();
-    expect(result.completedData.at(-1)?.value).toBeCloseTo(47, 0);
-    expect(result.openData.at(-1)?.value).toBeCloseTo(62, 0);
+    // Stack tops are Completed 47 and Open 62; Duplicate + Not planned (5) sit beneath Completed
+    expect(result.completedData.at(-1)?.value).toBeCloseTo(42, 0);
+    expect(result.openData.at(-1)?.value).toBeCloseTo(15, 0);
   });
 });

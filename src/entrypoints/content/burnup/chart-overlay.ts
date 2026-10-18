@@ -168,9 +168,11 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     return;
   }
 
-  // Completed is drawn on top of the series stacked beneath it (Duplicate,
-  // Not planned), so its line reaches the scope target at total + that base.
-  const targetValue = data.total + (data.completedStackBase ?? 0);
+  // Completed values are its own, but the chart draws Completed on top of the
+  // series stacked beneath it (Duplicate, Not planned). Shift by that base so
+  // the overlay lines up with the chart's Completed line.
+  const stackBase = data.completedStackBase ?? 0;
+  const targetValue = data.total + stackBase;
   const targetY = plotTop + toRelativeY(targetValue);
 
   // Draw current velocity line (dashed)
@@ -181,9 +183,9 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     
     // Calculate coordinates for the period start and end points
     const periodStartX = plotLeft + toRelativeX(velocity.periodStartDate);
-    const periodStartY = plotTop + toRelativeY(velocity.periodStartValue);
+    const periodStartY = plotTop + toRelativeY(velocity.periodStartValue + stackBase);
     const periodEndX = plotLeft + toRelativeX(velocity.periodEndDate);
-    const periodEndY = plotTop + toRelativeY(velocity.periodEndValue);
+    const periodEndY = plotTop + toRelativeY(velocity.periodEndValue + stackBase);
     
     // Calculate slope from the period
     const deltaX = periodEndX - periodStartX;
@@ -261,7 +263,7 @@ export function drawOverlay(chartInfo: ChartInfo, data: BurnupChartData, velocit
     startY = plotTop + data.completedStartPixel.y;
   } else {
     startX = plotLeft + toRelativeX(firstCompletedPoint.date);
-    startY = plotTop + toRelativeY(firstCompletedPoint.value);
+    startY = plotTop + toRelativeY(firstCompletedPoint.value + stackBase);
   }
 
   // Draw ideal velocity line
