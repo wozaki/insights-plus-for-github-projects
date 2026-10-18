@@ -11,7 +11,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: write
 
 jobs:
   bump-version:
@@ -57,12 +56,3 @@ jobs:
             --title "Bump version to ${{ inputs.version }}" \
             --body "Merging this PR releases v${{ inputs.version }}: \`release.yml\` tags it, publishes a GitHub Release, and submits the build to the Chrome Web Store.")
           echo "Release PR: $url" >> "$GITHUB_STEP_SUMMARY"
-
-      # A PR opened with GITHUB_TOKEN doesn't fire other workflows' `on:
-      # pull_request` triggers, so run the checks on the branch explicitly.
-      - name: Run checks on the release branch
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run ci.yml --ref "release/v${{ inputs.version }}"
-          gh workflow run e2e.yml --ref "release/v${{ inputs.version }}"
