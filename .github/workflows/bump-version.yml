@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   actions: write
 
 jobs:
@@ -38,16 +39,30 @@ jobs:
       - name: Bump package.json version
         run: npm pkg set version="${{ inputs.version }}"
 
-      - name: Commit and push
+      # main requires the `lint-and-test (22.x)` check, so the bump goes through
+      # a PR. Merging it pushes package.json to main, which starts release.yml.
+      - name: Commit and push the release branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git switch -c "release/v${{ inputs.version }}"
           git commit -am "Bump version to ${{ inputs.version }}"
-          git push origin HEAD:main
+          git push origin "release/v${{ inputs.version }}"
 
-      # A push made with GITHUB_TOKEN doesn't fire other workflows' `on: push`
-      # triggers, so release.yml won't start on its own; dispatch it explicitly.
-      - name: Trigger release workflow
+      - name: Open the release PR
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run release.yml --ref main
+        run: |
+          url=$(gh pr create --base main --head "release/v${{ inputs.version }}" \
+            --title "Bump version to ${{ inputs.version }}" \
+            --body "Merging this PR releases v${{ inputs.version }}: \`release.yml\` tags it, publishes a GitHub Release, and submits the build to the Chrome Web Store.")
+          echo "Release PR: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      # A PR opened with GITHUB_TOKEN doesn't fire other workflows' `on:
+      # pull_request` triggers, so run the checks on the branch explicitly.
+      - name: Run checks on the release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run ci.yml --ref "release/v${{ inputs.version }}"
+          gh workflow run e2e.yml --ref "release/v${{ inputs.version }}"

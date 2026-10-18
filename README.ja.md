@@ -215,22 +215,26 @@ pnpm wxt zip
 新しいリリースを作成するには、[Actions タブ](../../actions/workflows/bump-version.yml) から **Bump Version** ワークフローを実行します（または `gh workflow run bump-version.yml -f version=1.2.3`）。その際、新しいバージョン番号を入力してください。
 
 これにより、以下が自動的に行われます。
-- `package.json` の `version` フィールドを更新し、`main` にコミット
-- **Release** ワークフローをトリガーし、以下を実行:
-  - git タグを作成（例: `v1.2.3`）
-  - 拡張機能をビルド
-  - ビルドした `.zip` ファイルを添えて GitHub Release を作成
-  - Chrome Web Store にビルドを送信
+- `package.json` の `version` フィールドを更新した `release/v1.2.3` ブランチをプッシュ
+- `Bump version to 1.2.3` のプルリクエストを作成し、CI と E2E を実行
+
+チェックが通ったらプルリクエストをマージします。マージで **Release** ワークフローがトリガーされ、以下を実行します。
+- git タグを作成（例: `v1.2.3`）
+- 拡張機能をビルド
+- ビルドした `.zip` ファイルを添えて GitHub Release を作成
+- Chrome Web Store にビルドを送信
 
 タグが既に存在する場合、リリースワークフローはリリースをスキップします。
+
+Claude Code では、`/release` スキルがリリース前のリグレッションテストを含めて一連の流れを案内します。
 
 <details>
 <summary>手動での代替方法</summary>
 
-自分自身でバージョンアップをプッシュしてリリースをトリガーすることもできます。
+バージョンアップのプルリクエストを自分で作成することもできます。
 
-1. `package.json` の `version` フィールドを更新する
-2. `main` ブランチにコミットしてプッシュする
+1. 新しいブランチで `package.json` の `version` フィールドを更新する
+2. `main` 向けのプルリクエストを作成し、CI が通ったらマージする
 
 これにより同じ Release ワークフローがトリガーされます。
 
