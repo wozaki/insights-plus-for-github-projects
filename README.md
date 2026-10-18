@@ -216,7 +216,7 @@ To create a new release, run the **Bump Version** workflow from the [Actions tab
 
 This will automatically:
 - Push a `release/v1.2.3` branch with the `version` field in `package.json` updated
-- Open a `Bump version to 1.2.3` pull request and run CI and E2E on it
+- Open a `Bump version to 1.2.3` pull request, which runs CI and E2E
 
 Merge the pull request once its checks pass. The merge triggers the **Release** workflow, which:
 - Creates a git tag (e.g., `v1.2.3`)
