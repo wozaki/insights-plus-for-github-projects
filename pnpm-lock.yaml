@@ -196,7 +196,7 @@ importers:
         version: 30.0.0
       '@types/node':
         specifier: ^22.20.5
-        version: 22.20.5
+        version: 22.20.6
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.0.0
         version: 8.74.0(@typescript-eslint/parser@8.74.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@7.0.2))(@typescript/typescript6@6.0.2)(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@7.0.2)
@@ -226,13 +226,13 @@ importers:
         version: '@typescript/typescript6@6.0.2'
       vitest:
         specifier: ^5.0.0
-        version: 5.1.1(@types/node@22.20.5)(@vitest/ui@5.1.1)(jsdom@30.1.3)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 5.1.1(@types/node@22.20.6)(@vitest/ui@5.1.1)(jsdom@30.1.3)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       web-ext:
         specifier: ^10.5.0
         version: 10.8.0(jiti@2.7.0)(supports-color@7.2.0)
       wxt:
         specifier: ^0.21.0
-        version: 0.21.5(@typescript/typescript6@6.0.2)(esbuild@0.27.7)(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))(web-ext@10.8.0(jiti@2.7.0)(supports-color@7.2.0))
+        version: 0.21.5(@typescript/typescript6@6.0.2)(esbuild@0.27.7)(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))(web-ext@10.8.0(jiti@2.7.0)(supports-color@7.2.0))
 
 packages:
 
@@ -945,8 +945,8 @@ packages:
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
 
-  '@types/node@22.20.5':
-    resolution: {integrity: sha512-U2+DNr+wSjpsTS/wZGYHq7GcwfuSmKiKvoPvK22zwTlRhU91yOniN4qRR5KhIjvif7ysw/dz/hKmfDH0Ris4aA==}
+  '@types/node@22.20.6':
+    resolution: {integrity: sha512-vDsVXyIC4vhuGfe+eMMqJ5VP2BMqeWcbvMIoHIeE0nbY6qyrJSnxBpw2zIL7/tv55/Zf7lzKbdlq+lq+wt5N5w==}
 
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
@@ -3513,7 +3513,7 @@ snapshots:
 
   '@types/jsdom@30.0.0':
     dependencies:
-      '@types/node': 22.20.5
+      '@types/node': 22.20.6
       '@types/tough-cookie': 4.0.5
       parse5: 8.0.1
       undici-types: 8.10.1
@@ -3522,7 +3522,7 @@ snapshots:
 
   '@types/minimatch@3.0.5': {}
 
-  '@types/node@22.20.5':
+  '@types/node@22.20.6':
     dependencies:
       undici-types: 6.21.0
 
@@ -3689,14 +3689,14 @@ snapshots:
     dependencies:
       '@typescript/old': typescript@6.0.3
 
-  '@vitest/mocker@5.1.1(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
+  '@vitest/mocker@5.1.1(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.1.1
       estree-walker: 3.0.3
       magic-string: 1.4.5
     optionalDependencies:
-      vite: 8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
 
   '@vitest/pretty-format@5.1.1':
     dependencies:
@@ -3712,7 +3712,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.1.1(@types/node@22.20.5)(@vitest/ui@5.1.1)(jsdom@30.1.3)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 5.1.1(@types/node@22.20.6)(@vitest/ui@5.1.1)(jsdom@30.1.3)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
 
   '@vitest/utils@5.1.1':
     dependencies:
@@ -3961,7 +3961,7 @@ snapshots:
 
   chrome-launcher@1.2.0(supports-color@7.2.0):
     dependencies:
-      '@types/node': 22.20.5
+      '@types/node': 22.20.6
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 2.0.2(supports-color@7.2.0)
@@ -5308,7 +5308,7 @@ snapshots:
 
   undici@8.12.2: {}
 
-  unimport@6.4.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  unimport@6.4.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       acorn: 8.18.0
       escape-string-regexp: 5.0.0
@@ -5322,7 +5322,7 @@ snapshots:
       scule: 1.3.0
       strip-literal: 4.0.0
       tinyglobby: 0.2.17
-      unplugin: 3.3.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      unplugin: 3.3.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       unplugin-utils: 0.3.2
     optionalDependencies:
       rolldown: 1.1.5
@@ -5343,7 +5343,7 @@ snapshots:
       pathe: 2.0.3
       picomatch: 4.0.7
 
-  unplugin@3.3.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  unplugin@3.3.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.7
@@ -5352,7 +5352,7 @@ snapshots:
       esbuild: 0.27.7
       rolldown: 1.1.5
       rollup: 4.59.0
-      vite: 8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
 
   upath@3.0.8: {}
 
@@ -5375,7 +5375,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1):
+  vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.7
@@ -5383,16 +5383,16 @@ snapshots:
       rolldown: 1.1.5
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 22.20.5
+      '@types/node': 22.20.6
       esbuild: 0.27.7
       fsevents: 2.3.3
       jiti: 2.7.0
       yaml: 2.9.1
 
-  vitest@5.1.1(@types/node@22.20.5)(@vitest/ui@5.1.1)(jsdom@30.1.3)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  vitest@5.1.1(@types/node@22.20.6)(@vitest/ui@5.1.1)(jsdom@30.1.3)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.1.1(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      '@vitest/mocker': 5.1.1(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -5403,10 +5403,10 @@ snapshots:
       tinybench: 6.2.4
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
-      '@types/node': 22.20.5
+      '@types/node': 22.20.6
       '@vitest/ui': 5.1.1(vitest@5.1.1)
       jsdom: 30.1.3
     transitivePeerDependencies:
@@ -5515,7 +5515,7 @@ snapshots:
       is-wsl: 3.1.1
       powershell-utils: 0.2.1
 
-  wxt@0.21.5(@typescript/typescript6@6.0.2)(esbuild@0.27.7)(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))(web-ext@10.8.0(jiti@2.7.0)(supports-color@7.2.0)):
+  wxt@0.21.5(@typescript/typescript6@6.0.2)(esbuild@0.27.7)(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))(web-ext@10.8.0(jiti@2.7.0)(supports-color@7.2.0)):
     dependencies:
       '@1natsu/wait-element': 5.0.0
       '@aklinker1/rollup-plugin-visualizer': 5.12.0(rollup@4.59.0)
@@ -5544,8 +5544,8 @@ snapshots:
       tiny-open: 1.3.0
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      unimport: 6.4.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
-      vite: 8.1.4(@types/node@22.20.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      unimport: 6.4.0(esbuild@0.27.7)(rolldown@1.1.5)(rollup@4.59.0)(vite@8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      vite: 8.1.4(@types/node@22.20.6)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
     optionalDependencies:
       eslint: 10.15.0(jiti@2.7.0)(supports-color@7.2.0)
       typescript: '@typescript/typescript6@6.0.2'
