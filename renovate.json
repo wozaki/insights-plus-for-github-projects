@@ -10,14 +10,14 @@
   "minimumReleaseAge": "3 days",
   "platformAutomerge": false,
   "postUpdateOptions": ["pnpmDedupe"],
+  "minimumReleaseAgePackageManagerSync": true,
   "lockFileMaintenance": {
     "description": [
-      "Regenerate pnpm-lock.yaml weekly (Renovate's default schedule, before 4am on Monday) so transitive dependencies move to the latest versions their parents allow. Regular updates only bump direct dependencies, so vulnerable transitive versions otherwise stay pinned until Dependabot flags them.",
-      "minimumReleaseAge is null because a lock file maintenance PR has no release timestamp: with the top-level 3 days and the default minimumReleaseAgeBehaviour (timestamp-required), Renovate would hold it forever. pnpm still refuses versions published less than its own minimumReleaseAge ago (1 day by default since pnpm v11) while regenerating the lock file.",
-      "Automerged like the other groups: with platformAutomerge: false, Renovate merges only once every check, e2e included, is green."
+      "Regenerate pnpm-lock.yaml weekly (Renovate's default schedule, before 4am on Monday) so transitive dependencies move to the latest versions their parents allow. Regular updates only bump direct dependencies, so transitive versions otherwise stay pinned indefinitely, even after Dependabot flags them as vulnerable.",
+      "The 3-day minimumReleaseAge still applies: minimumReleaseAgePackageManagerSync makes Renovate pass it to pnpm (--config.minimum-release-age), so pnpm resolves every package, direct and transitive, to a version at least 3 days old. Because pnpm enforces it, Renovate does not hold these timestamp-less PRs back.",
+      "Automerged like the other groups: with platformAutomerge: false, Renovate merges only once every check, e2e included, is green. Transitive updates stay within the ranges their parents declare."
     ],
     "enabled": true,
-    "minimumReleaseAge": null,
     "automerge": true,
     "automergeType": "pr"
   },
